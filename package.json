@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@react-native-firebase/app": "^20.0.0"
+  }
+}
