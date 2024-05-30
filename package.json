@@ -1,6 +1,10 @@
 {
   "dependencies": {
+    "@react-navigation/drawer": "^6.6.15",
+    "@react-navigation/stack": "^6.3.29",
     "expo": "^48.0.21",
-    "expo-cli": "^6.3.10"
+    "expo-cli": "^6.3.10",
+    "react-native-gesture-handler": "~2.9.0",
+    "react-native-reanimated": "~2.14.4"
   }
 }
