@@ -3,10 +3,10 @@ import {
     View,
     Image,
     TouchableOpacity,
-    TextInput,
-    AsyncStorage,
+    TextInput,    
     Text
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import {logstyle} from "./Styles";
 

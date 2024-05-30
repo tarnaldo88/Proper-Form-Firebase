@@ -11,7 +11,7 @@ const Drawer = createDrawerNavigator();
 function AppDrawer() {
 	return (
 		<Drawer.Navigator drawerContent={props => <DrawerContent {...props} />}>
-			<Drawer.Screen name="DrawHome" component={MainTabScreen} />
+			<Drawer.Screen name="Home" component={MainTabScreen} />
 		</Drawer.Navigator>
 	);
 }
