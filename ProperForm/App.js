@@ -3,6 +3,7 @@ import {NavigationContainer, DrawerActions} from "@react-navigation/native";
 import {createDrawerNavigator} from "@react-navigation/drawer";
 import MainTabScreen from "./Components/Screens/MainTabScreen";
 import {DrawerContent} from "./Components/Screens/DrawerContent";
+import { app } from "./Components/firebase";
 
 const Drawer = createDrawerNavigator();
 

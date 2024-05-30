@@ -4,11 +4,15 @@ import {
     Image,
     TouchableOpacity,
     TextInput,    
-    Text
+    Text,
+    KeyboardAvoidingView
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import {logstyle} from "./Styles";
+import app from "../firebase";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+
 
 // Import the functions you need from the SDKs you need.
 // import { initializeApp } from "firebase/app";
@@ -44,8 +48,17 @@ function LoginScreen({navigation}) {
         
     };
 
+    async function Login(){
+        try{
+            const auth = getAuth(app);
+            await create
+        } catch(error) {
+
+        }
+    }
+
     useEffect(() => {
-        getData();
+        //getData();
     }, []);
 
     const handleUsername = text => {
@@ -69,7 +82,8 @@ function LoginScreen({navigation}) {
     return (
         <View style={logstyle.container}>
             <Text style={{height: 30}}>{testname}</Text>
-
+            
+            <KeyboardAvoidingView>
             <TextInput
                 style={logstyle.input}
                 underlineColorAndroid="transparent"
@@ -87,6 +101,8 @@ function LoginScreen({navigation}) {
                 autoCapitalize="none"
                 onChangeText={handlePassword}
             />
+            </KeyboardAvoidingView>
+
             <TouchableOpacity
                 onPress={() => {
                     

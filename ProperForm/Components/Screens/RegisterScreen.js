@@ -11,37 +11,33 @@ import {
 	Button
 } from "react-native";
 import {logstyle} from "./Styles";
-import {Storage} from "./../AsyncStorage/Storage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { 
+	getAuth, 
+	createUserWithEmailAndPassword, 
+	signInWithEmailAndPassword, 
+	onAuthStateChanged, 
+	signOut 
+} from '@firebase/auth';
+
 
 function RegisterScreen({navigation}) {
 	const [email, setEmail] = useState();
-	const [username, setUsername] = useState();
 	const [pw, setPw] = useState();
+
+	//second password entry for checking
 	const [repw, setRePw] = useState();
-	const [pwScore, setPwScore] = useState();
+	//second email entry for checking
 	const [rem, setRem] = useState();
-	const [last, setLast] = useState();
-	const [first, setFirst] = useState();
-	const txtEm = "Email provided does not match";
+
 	const [isLoading, setLoading] = useState(false);
 
-	onChange = (password, score, {label, labelColor, activeBarColor}) => {
-		// console.log(password, score, {label, labelColor, activeBarColor});
-		setPw(password);
-		setPwScore(score);
+	
+	const handlePassword = text => {
+		setPw(text);
 	};
-	onChangeSecond = (password, score, {label, labelColor, activeBarColor}) => {
-		// console.log(password, score, {label, labelColor, activeBarColor});
-		setRePw(password);
-	};
-	const handleUsername = text => {
-		setUsername(text);
-	};
-	const handleFirst = text => {
-		setFirst(text);
-	};
-	const handleLast = text => {
-		setLast(text);
+	const handleRePw = text => {
+		setRePw(text);
 	};
 	const handleEmail = text => {
 		setEmail(text);
@@ -50,31 +46,56 @@ function RegisterScreen({navigation}) {
 		setRem(text);
 	};
 
-	const ComparePassword = () => {
-		if (pw.localeCompare(repw) == 0 && pwScore >= 24) {
-			//strings are equal let user continue & score is high enough
-			return true;
-		} else {
-			//strings are not equal and/or score not appropriate
-			alert("Password not strong enough");
-			return false;
-		}
-	};
-	const EmailValidation = () => {
-		if (email !== "undefined" && rem !== "undefined") {
-			var pattern = new RegExp(
-				/^(("[\w-\s]+")|([\w-]+(?:\.[\w-]+)*)|("[\w-\s]+")([\w-]+(?:\.[\w-]+)*))(@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$)|(@\[?((25[0-5]\.|2[0-4][0-9]\.|1[0-9]{2}\.|[0-9]{1,2}\.))((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\.){2}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\]?$)/i
-			);
+	async function handleSignup(){
+		if (ComparePassword() && CompareEmail()){
+			setLoading(true);
+			try{
+				const auth= getAuth(app);
+				await createUserWithEmailAndPassword(auth, email, pw);
+				const response = await signInWithEmailAndPassword(auth, email, pw);
+				setLoading(false);
+			} catch(error){
 
-			if (pattern.test(email) && email.localeCompare(rem) == 0) {
-				//email is valid
-				return true;
-			} else {
-				alert(txtEm);
-				return false;
 			}
 		}
 	};
+
+	const ComparePassword = () => {
+		if (pw.localeCompare(repw) == 0) {
+			//strings are equal let user continue
+			return true;
+		} else {
+			//strings are not equal
+			alert("Password does not match");
+			return false;
+		}
+	};
+
+	const CompareEmail = () => {
+		if (email.localeCompare(rem) == 0) {
+			//strings are equal let user continue
+			return true;
+		} else {
+			//strings are not equal
+			alert("Email does not match");
+			return false;
+		}
+	};
+	// const EmailValidation = () => {
+	// 	if (email !== "undefined" && rem !== "undefined") {
+	// 		var pattern = new RegExp(
+	// 			/^(("[\w-\s]+")|([\w-]+(?:\.[\w-]+)*)|("[\w-\s]+")([\w-]+(?:\.[\w-]+)*))(@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$)|(@\[?((25[0-5]\.|2[0-4][0-9]\.|1[0-9]{2}\.|[0-9]{1,2}\.))((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\.){2}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\]?$)/i
+	// 		);
+
+	// 		if (pattern.test(email) && email.localeCompare(rem) == 0) {
+	// 			//email is valid
+	// 			return true;
+	// 		} else {
+	// 			alert(txtEm);
+	// 			return false;
+	// 		}
+	// 	}
+	// };
 
 	/*
 	//function used to decrypt
@@ -87,44 +108,10 @@ function RegisterScreen({navigation}) {
 	/*Axios calls to the APi*/
 
 	const VerifyExists = async () => {
-		var arr = [];
-		//setLoading(true);
-		await axios
-			.get(
-				"http://52.53.203.248/ProperApi/api/signup/" +
-					email +
-					"/" +
-					username,
-				{}
-			)
-			.then(response => {
-				arr.push(response.data.emailExists);
-				arr.push(response.data.usernameExists);
-			});
-		return arr;
+		
 	};
 
-	const validNav = async () => {
-		if (ComparePassword() && EmailValidation()) {
-			let check = await VerifyExists();
-			if (check[0] == true) {
-				if (check[1] == true) {
-					// PostSignup();
-					var encode = pw;
-					let token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-					Storage.setRegisterData(username, encode, email, false, first, last, token);
-		
-					return navigation.navigate("userDetails");
-				} else {
-					//print Username already exists error
-					alert("Username already exists error");
-				}
-			} else {
-				//print account under email already exists
-				alert("account under email already exists");
-			}
-		}
-	};
+	
 	const Loading = () => {
 		if (isLoading) {
 			return (
@@ -143,6 +130,65 @@ function RegisterScreen({navigation}) {
 		<SafeAreaView style={logstyle.container}>
 			<ScrollView>
 				<View style={logstyle.container}>
+					
+					<TextInput
+						style={logstyle.input}
+						underlineColorAndroid="transparent"
+						placeholder=" Enter Your Email"
+						placeholderTextColor="#9a73ef"
+						autoCapitalize="none"
+						onChangeText={handleEmail}
+					/>
+					<TextInput
+						style={logstyle.input}
+						underlineColorAndroid="transparent"
+						placeholder=" Please Re-Enter Your Email"
+						placeholderTextColor="#9a73ef"
+						autoCapitalize="none"
+						onChangeText={handleRemail}
+					/>
+					<TextInput
+						style={logstyle.input}
+						secureTextEntry={true}
+						underlineColorAndroid="transparent"
+						placeholder=" Password"
+						placeholderTextColor="#9a73ef"
+						autoCapitalize="none"
+						onChangeText={handlePassword}
+            		/>
+					<Text>Please Re-Enter your Password</Text>
+					<TextInput
+						style={logstyle.input}
+						secureTextEntry={true}
+						underlineColorAndroid="transparent"
+						placeholder=" Password"
+						placeholderTextColor="#9a73ef"
+						autoCapitalize="none"
+						onChangeText={handleRePw}
+            		/>
+					<Loading />
+					<TouchableOpacity
+						onPress={() => {
+							setLoading(true);
+							handleSignup();
+							//navigation.navigate("mainHomeLogged");
+						}}
+					>
+						<Image
+							source={require("./../../img/submit.png")}
+							style={logstyle.submitButton}
+						/>
+					</TouchableOpacity>					
+				</View>
+			</ScrollView>
+		</SafeAreaView>
+	);
+}
+
+export {RegisterScreen};
+
+
+/* 
 					<TextInput
 						style={logstyle.input}
 						underlineColorAndroid="transparent"
@@ -167,41 +213,5 @@ function RegisterScreen({navigation}) {
 						autoCapitalize="none"
 						onChangeText={handleUsername}
 					/>
-					<TextInput
-						style={logstyle.input}
-						underlineColorAndroid="transparent"
-						placeholder=" Enter Your Email"
-						placeholderTextColor="#9a73ef"
-						autoCapitalize="none"
-						onChangeText={handleEmail}
-					/>
-					<TextInput
-						style={logstyle.input}
-						underlineColorAndroid="transparent"
-						placeholder=" Please Re-Enter Your Email"
-						placeholderTextColor="#9a73ef"
-						autoCapitalize="none"
-						onChangeText={handleRemail}
-					/>
-					<Text>Please Re-Enter your Password</Text>
-					<Loading />
-					<TouchableOpacity
-						onPress={() => {
-							Storage.initRegistrationData();
-							setLoading(true);
-							validNav();
-							//navigation.navigate("mainHomeLogged");
-						}}
-					>
-						<Image
-							source={require("./../../img/next.png")}
-							style={logstyle.submitButton}
-						/>
-					</TouchableOpacity>					
-				</View>
-			</ScrollView>
-		</SafeAreaView>
-	);
-}
 
-export {RegisterScreen};
+*/
