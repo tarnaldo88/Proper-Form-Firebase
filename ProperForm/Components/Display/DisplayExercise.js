@@ -14,7 +14,15 @@ import {
 	logstyle,
 	exerciseStyle
 } from "./../Screens/Styles";
-import YoutubePlayer from "react-native-youtube-iframe";
+// import YoutubePlayer from "react-native-youtube-iframe";
+// <YoutubePlayer
+// 							height={200}
+// 							width={300}
+// 							style={{marginLeft: 15}}
+// 							play={playing}
+// 							videoId={"ykJmrZ5v0Oo"}
+// 							onChangeState={onStateChange}
+// 						/>
 
 function DisplayExercise({val}) {
 	const [playing, setPlaying] = useState(false);
@@ -40,14 +48,7 @@ function DisplayExercise({val}) {
 						style={image.TouchableA}
 					/>
 					<View style={views.Home}>
-						<YoutubePlayer
-							height={200}
-							width={300}
-							style={{marginLeft: 15}}
-							play={playing}
-							videoId={"ykJmrZ5v0Oo"}
-							onChangeState={onStateChange}
-						/>
+						
 					</View>
 					<ScrollView>
 						<View style={exerciseStyle.wrapPara}>

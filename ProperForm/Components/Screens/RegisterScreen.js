@@ -11,8 +11,6 @@ import {
 	Button
 } from "react-native";
 import {logstyle} from "./Styles";
-import RNPasswordStrengthMeter from "react-native-password-strength-meter";
-import {Base64} from "js-base64";
 import {Storage} from "./../AsyncStorage/Storage";
 
 function RegisterScreen({navigation}) {
@@ -112,7 +110,7 @@ function RegisterScreen({navigation}) {
 			if (check[0] == true) {
 				if (check[1] == true) {
 					// PostSignup();
-					var encode = Base64.encode(pw);
+					var encode = pw;
 					let token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 					Storage.setRegisterData(username, encode, email, false, first, last, token);
 		
@@ -185,15 +183,7 @@ function RegisterScreen({navigation}) {
 						autoCapitalize="none"
 						onChangeText={handleRemail}
 					/>
-					<RNPasswordStrengthMeter
-						onChangeText={onChange}
-						meterType="box"
-					/>
 					<Text>Please Re-Enter your Password</Text>
-					<RNPasswordStrengthMeter
-						onChangeText={onChangeSecond}
-						meterType="box"
-					/>
 					<Loading />
 					<TouchableOpacity
 						onPress={() => {

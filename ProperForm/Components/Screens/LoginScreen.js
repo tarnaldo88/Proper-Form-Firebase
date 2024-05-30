@@ -9,17 +9,15 @@ import {
 } from "react-native";
 import axios from "axios";
 import {logstyle} from "./Styles";
-import {Base64} from "js-base64";
 
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-import { firebaseConfig } from "../AsyncStorage/config";
-import firebase from "firebase/app";
+// Import the functions you need from the SDKs you need.
+// import { initializeApp } from "firebase/app";
+// import { getAnalytics } from "firebase/analytics";
+// import { firebaseConfig } from "../AsyncStorage/config";
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+//const app = initializeApp(firebaseConfig);
+//const analytics = getAnalytics(app);
 
 function LoginScreen({navigation}) {
     const [testname, setTestname] = useState();
@@ -93,7 +91,7 @@ function LoginScreen({navigation}) {
                 "http://52.53.203.248/ProperApi/api/Login/" +
                     username +
                     "/" +
-                    encryptPassword(),
+                    password,
                 {}
             )
             .then(response => {
@@ -103,14 +101,6 @@ function LoginScreen({navigation}) {
             });
         return arr;
     };
-
-    const encryptPassword = () => {
-        var encode = Base64.encode(password);
-        //console.log(encode);
-        return encode;
-    };
-
-    
 
     return (
         <View style={logstyle.container}>

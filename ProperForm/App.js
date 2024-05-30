@@ -6,6 +6,8 @@ import {createDrawerNavigator} from "@react-navigation/drawer";
 import MainTabScreen from "./Components/Screens/MainTabScreen";
 import {DrawerContent} from "./Components/Screens/DrawerContent";
 
+const Drawer = createDrawerNavigator();
+
 function AppDrawer() {
 	return (
 		<Drawer.Navigator drawerContent={props => <DrawerContent {...props} />}>
