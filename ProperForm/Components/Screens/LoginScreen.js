@@ -41,18 +41,7 @@ function LoginScreen({navigation}) {
     };
 
     const submitPressed = async () => {
-        login(username, password);
-        let arr = await VerifyAccount();
-        console.log(arr);
-        if (arr[1]) {
-            // alert("logged in");
-            console.log(arr[0]);
-            onSubmit(username, arr[2], arr[0]);
-            getData(setUsername, setToken);
-            return navigation.navigate("mainHome");
-        } else {
-            alert("Username or password incorrect \nPlease try again");
-        }
+        
     };
 
     useEffect(() => {
@@ -70,36 +59,11 @@ function LoginScreen({navigation}) {
     };
 
     const onSubmit = async (userName, userToken, UserID) => {
-        try {
-            await AsyncStorage.setItem(
-                "userProfile",
-                JSON.stringify({userID: UserID, username: userName, token: userToken})
-            );
-            console.log(UserID);
-            await AsyncStorage.setItem("signedIn", "true");
-            let test = await AsyncStorage.getItem("signedIn");
-            // console.log('Variable Test: ' + test);
-        } catch (err) {
-            console.log(err);
-        }
+        
     };
 
     const VerifyAccount = async () => {
-        var arr = [];
-        await axios
-            .get(
-                "http://52.53.203.248/ProperApi/api/Login/" +
-                    username +
-                    "/" +
-                    password,
-                {}
-            )
-            .then(response => {
-                arr.push(response.data.userID);
-                arr.push(response.data.equal);
-                arr.push(response.data.token);
-            });
-        return arr;
+       
     };
 
     return (
@@ -125,14 +89,7 @@ function LoginScreen({navigation}) {
             />
             <TouchableOpacity
                 onPress={() => {
-                    console.log(
-                        "http://52.53.203.248/ProperApi/api/Login/" +
-                            username +
-                            "/" +
-                            encryptPassword(),
-                    );
-                    submitPressed();
-                    //navigation.navigate("LoggedHomeScreen");
+                    
                 }}
             >
                 <Image

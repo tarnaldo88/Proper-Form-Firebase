@@ -1,5 +1,3 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
 import * as React from "react";
 import {NavigationContainer, DrawerActions} from "@react-navigation/native";
 import {createDrawerNavigator} from "@react-navigation/drawer";
@@ -10,16 +8,19 @@ const Drawer = createDrawerNavigator();
 
 function AppDrawer() {
 	return (
-		<Drawer.Navigator drawerContent={props => <DrawerContent {...props} />}>
-			<Drawer.Screen name="Home" component={MainTabScreen} />
+		<Drawer.Navigator   
+			screenOptions={{
+				headerShown:(false)
+			}}
+		drawerContent={props => <DrawerContent {...props} />}>
+			<Drawer.Screen name="Menu" component={MainTabScreen} />
 		</Drawer.Navigator>
 	);
 }
-
 export default function App() {
-  return (
-    <NavigationContainer>
+	return (
+		<NavigationContainer>
 			<AppDrawer />
 		</NavigationContainer>
-  );
+	);
 }

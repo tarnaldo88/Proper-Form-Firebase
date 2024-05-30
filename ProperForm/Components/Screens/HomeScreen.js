@@ -6,14 +6,14 @@ import {
     ImageBackground,
     SafeAreaView,
     ScrollView,
-    AsyncStorage,
     Text,
     TextInput
 } from "react-native";
 import {MyNutrition} from "./MyNutrition";
 import {views, image, logstyle} from "./Styles";
 import {useFocusEffect} from "@react-navigation/native";
-import {Storage} from "./../AsyncStorage/Storage";
+//import {Storage} from "./../AsyncStorage/Storage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 /* The HomeScreen function sets up the formatting of the HomeScreen page
 
@@ -111,7 +111,7 @@ function HomeScreen({navigation}) {
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={() => {
-                                    navigation.navigate("mainHome"), Storage.logout(setUserID, setName,setIsLog);
+                                    navigation.navigate("mainHome") 
                                 }}
                             >
                                 <Image
