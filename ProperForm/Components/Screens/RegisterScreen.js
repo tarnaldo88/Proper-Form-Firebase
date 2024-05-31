@@ -20,6 +20,7 @@ import {
 	onAuthStateChanged, 
 	signOut 
 } from '@firebase/auth';
+import app from "../firebase";
 
 
 function RegisterScreen({navigation}) {
@@ -53,10 +54,12 @@ function RegisterScreen({navigation}) {
 			setLoading(true);
 			try{
 				const auth= getAuth(app);
+				Alert.alert("about to createUser");
 				await createUserWithEmailAndPassword(auth, email, pw);
 				const response = await signInWithEmailAndPassword(auth, email, pw);
 				setLoading(false);
 				setLogged(true);
+				Alert.alert("success", response.user.uid);
 				return;
 			} catch(error){
 				setLoading(false);
@@ -71,7 +74,7 @@ function RegisterScreen({navigation}) {
 			return true;
 		} else {
 			//strings are not equal
-			alert("Password does not match");
+			Alert.alert("Password does not match");
 			return false;
 		}
 	};
@@ -82,7 +85,7 @@ function RegisterScreen({navigation}) {
 			return true;
 		} else {
 			//strings are not equal
-			alert("Email does not match");
+			Alert.alert("Email does not match");
 			return false;
 		}
 	};
@@ -176,7 +179,7 @@ function RegisterScreen({navigation}) {
 						onPress={() => {							
 							handleSignup();
 							if(logged){
-								navigation.navigate("mainHomeLogged");
+								navigation.navigate("mainHome");
 							}
 							//navigation.navigate("mainHomeLogged");
 						}}

@@ -30,29 +30,34 @@ function LoginScreen({navigation}) {
     const [password, setPw] = useState();
     const [token, setToken] = useState();
     const [logged,setLogged] = useState(false);
+    const [isLoading, setLoading] = useState(false);
 
-    const getData = async () => {
-        try {
-            const userprofile = await AsyncStorage.getItem("userProfile");
-            const userProfile = JSON.parse(userprofile);
-            // console.log(userProfile.username);
-            // console.log(userProfile.token);
-            if (userProfile !== null) {
-                setUsername(userProfile.username);
-                setToken(userProfile.token);
-            }
-        } catch (e) {
-            //error reading value
-        }
-    };
+    // const getData = async () => {
+    //     try {
+    //         const userprofile = await AsyncStorage.getItem("userProfile");
+    //         const userProfile = JSON.parse(userprofile);
+    //         // console.log(userProfile.username);
+    //         // console.log(userProfile.token);
+    //         if (userProfile !== null) {
+    //             setUsername(userProfile.username);
+    //             setToken(userProfile.token);
+    //         }
+    //     } catch (e) {
+    //         //error reading value
+    //     }
+    // };
 
     async function handleSignin(){		
         setLoading(true);
         try{
-            const auth= getAuth(app);				
-            const response = await signInWithEmailAndPassword(auth, email, pw);
+            setLoading(true);
+            const auth= getAuth(app);	
+            //await signInWithEmailAndPassword(auth, username, password);	
+            Alert.alert("trying to log in")		
+            const response = await signInWithEmailAndPassword(auth, username, password);
             setLoading(false);
             setLogged(true);
+            Alert.alert("success", response.user.uid);
             return;
         } catch(error){
             setLoading(false);
@@ -120,7 +125,7 @@ function LoginScreen({navigation}) {
                 onPress={() => {
                     handleSignin()
                     if(logged){
-                        navigation.navigate("mainHomeLogged");
+                        navigation.navigate("mainHome");
                     }
                 }}
             >
