@@ -12,7 +12,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import {logstyle} from "./Styles";
 import app from "../firebase";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { getAuth, signInWithEmailAndPassword, getReactNativePersistence } from "firebase/auth";
+import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 
 function LoginScreen({navigation}) {
     const [testname, setTestname] = useState();
@@ -26,12 +27,15 @@ function LoginScreen({navigation}) {
         setLoading(true);
         try{
             setLoading(true);
-            const auth = getAuth(app);	
-            //await signInWithEmailAndPassword(auth, username, password);	
-            Alert.alert("trying to log in")		
+            const auth = initializeAuth(app, {
+                persistence: getReactNativePersistence(ReactNativeAsyncStorage)
+              });	
+            //await signInWithEmailAndPassword(auth, username, password);
             const response = await signInWithEmailAndPassword(auth, username, password);
             setLoading(false);
             setLogged(true);
+            AsyncStorage.setItem('token', response.user.getIdToken.toString());
+            AsyncStorage.setItem('isLoggedIn', JSON.stringify(true));
             Alert.alert("success", response.user.uid);
             return;
         } catch(error){

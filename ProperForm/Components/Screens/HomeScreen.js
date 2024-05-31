@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {
     View,
     Image,
@@ -27,7 +27,7 @@ import app from "../firebase";
 
 function HomeScreen({navigation}) {
     const [name, setName] = useState();
-    const [isLog, setIsLog] = useState();
+    const [isLog, setIsLog] = useState(false);
 	const [isSign, setIsSign] = useState(false);
     const [userID, setUserID] = useState();
 
@@ -46,6 +46,12 @@ function HomeScreen({navigation}) {
     //         alert(err);
     //     }
     // }
+
+    async function getData(){
+        const data = await AsyncStorage.getItem('isLoggedIn');
+        console.log(data, 'at home');a
+        setIsLog(data);
+    }
 
     checkIfLoggedIn = () => {
         firebase.auth().onAuthStateChanged(function(user)
@@ -70,6 +76,10 @@ function HomeScreen({navigation}) {
     //         };
     //     }, [])
     // );
+
+    useEffect(() => {
+        getData();
+    }, []);
 
     return (
         <SafeAreaView style={views.Home}>
