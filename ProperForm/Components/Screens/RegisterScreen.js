@@ -8,7 +8,8 @@ import {
 	TextInput,
 	SafeAreaView,
 	ScrollView,
-	Button
+	Button,
+	Alert
 } from "react-native";
 import {logstyle} from "./Styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -31,6 +32,7 @@ function RegisterScreen({navigation}) {
 	const [rem, setRem] = useState();
 
 	const [isLoading, setLoading] = useState(false);
+	const [logged,setLogged] = useState(false);
 
 	
 	const handlePassword = text => {
@@ -54,8 +56,11 @@ function RegisterScreen({navigation}) {
 				await createUserWithEmailAndPassword(auth, email, pw);
 				const response = await signInWithEmailAndPassword(auth, email, pw);
 				setLoading(false);
+				setLogged(true);
+				return;
 			} catch(error){
-
+				setLoading(false);
+				Alert.alert("Error in registering");
 			}
 		}
 	};
@@ -168,9 +173,11 @@ function RegisterScreen({navigation}) {
             		/>
 					<Loading />
 					<TouchableOpacity
-						onPress={() => {
-							setLoading(true);
+						onPress={() => {							
 							handleSignup();
+							if(logged){
+								navigation.navigate("mainHomeLogged");
+							}
 							//navigation.navigate("mainHomeLogged");
 						}}
 					>
