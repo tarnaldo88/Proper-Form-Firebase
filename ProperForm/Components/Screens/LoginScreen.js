@@ -5,7 +5,8 @@ import {
     TouchableOpacity,
     TextInput,    
     Text,
-    KeyboardAvoidingView
+    KeyboardAvoidingView,
+    Alert
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
@@ -28,6 +29,7 @@ function LoginScreen({navigation}) {
     const [username, setUsername] = useState();
     const [password, setPw] = useState();
     const [token, setToken] = useState();
+    const [logged,setLogged] = useState(false);
 
     const getData = async () => {
         try {
@@ -44,9 +46,20 @@ function LoginScreen({navigation}) {
         }
     };
 
-    const submitPressed = async () => {
-        
-    };
+    async function handleSignin(){		
+        setLoading(true);
+        try{
+            const auth= getAuth(app);				
+            const response = await signInWithEmailAndPassword(auth, email, pw);
+            setLoading(false);
+            setLogged(true);
+            return;
+        } catch(error){
+            setLoading(false);
+            Alert.alert("Error in registering");
+        }
+		
+	};
 
     async function Login(){
         try{
@@ -105,7 +118,10 @@ function LoginScreen({navigation}) {
 
             <TouchableOpacity
                 onPress={() => {
-                    
+                    handleSignin()
+                    if(logged){
+                        navigation.navigate("mainHomeLogged");
+                    }
                 }}
             >
                 <Image
