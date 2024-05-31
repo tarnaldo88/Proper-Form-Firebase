@@ -15,7 +15,8 @@ import {useFocusEffect} from "@react-navigation/native";
 //import {Storage} from "./../AsyncStorage/Storage";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LoginScreen } from "./LoginScreen";
-
+import { getAuth, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import app from "../firebase";
 /* The HomeScreen function sets up the formatting of the HomeScreen page
 
   *TouchableOpacity component
