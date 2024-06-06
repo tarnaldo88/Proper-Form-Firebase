@@ -15,8 +15,10 @@ import {useFocusEffect} from "@react-navigation/native";
 //import {Storage} from "./../AsyncStorage/Storage";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LoginScreen } from "./LoginScreen";
-import { getAuth, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { getAuth, signInWithEmailAndPassword, signOut, initializeAuth, getReactNativePersistence } from "firebase/auth";
 import app from "../firebase";
+import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
+
 /* The HomeScreen function sets up the formatting of the HomeScreen page
 
   *TouchableOpacity component
@@ -48,8 +50,8 @@ function HomeScreen({navigation}) {
     // }
 
     async function getData(){
-        const data = await AsyncStorage.getItem('isLoggedIn');
-        console.log(data, 'at home');a
+        const data = await ReactNativeAsyncStorage.getItem('isLoggedIn');
+        console.log(data, 'at home');
         setIsLog(data);
     }
 
@@ -63,6 +65,13 @@ function HomeScreen({navigation}) {
                 navigation.navigate("Login");
             }
         })
+    }
+
+    async function logoutUser(){
+        const auth = getAuth(app);
+        ReactNativeAsyncStorage.setItem('isLoggedIn', JSON.stringify(false));
+        ReactNativeAsyncStorage.setItem('token', null);      
+        await auth.signOut();
     }
 
     // useFocusEffect(
@@ -123,6 +132,7 @@ function HomeScreen({navigation}) {
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={() => {
+                                    logoutUser();
                                     navigation.navigate("mainHome") 
                                 }}
                             >

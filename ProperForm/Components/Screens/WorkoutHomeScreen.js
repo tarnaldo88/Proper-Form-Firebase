@@ -14,12 +14,13 @@ import {
 	TouchableRipple,
 	Switch
 } from "react-native-paper";
-import {Storage} from "./../AsyncStorage/Storage";
+import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 
 /* The CommunityHomeScreen function sets up the formatting of the Community Screen page
 
   *GoToButton component
-  *GoToButton is a custom component that allows you to enter the name of the screen
+  *GoToButton is a custom component that allows you to ent
+  er the name of the screen
   *you want to navigate to without importing navigate.
   *Format <GoToButton screenName = "ExampleScreenName" />
 */
@@ -39,17 +40,28 @@ function WorkoutHomeScreen({navigation}, props) {
 		load()   
 	}, [])*/
 
+	async function getData(){
+        const data = await ReactNativeAsyncStorage.getItem('isLoggedIn');
+        console.log(data, 'at Workout home');
+		setName(ReactNativeAsyncStorage.getItem('email'));
+        setIsLog(data);
+    }
+
 	useFocusEffect(
 		React.useCallback(() => {
 		  // Do something when the screen is focused
-		  Storage.load(setUserID, setName, setIsLog);
-		  Storage.setSignOut();
+		//   Storage.load(setUserID, setName, setIsLog);
+		//   Storage.setSignOut();
 		  return () => {
 			// Do something when the screen is unfocused
 			// Useful for cleanup functions as
 		  };
 		}, [])
 	  );
+
+	  useEffect(() => {
+        getData();
+    }, []);
 
 	return (
 		<View style={{marginLeft: 20}}>

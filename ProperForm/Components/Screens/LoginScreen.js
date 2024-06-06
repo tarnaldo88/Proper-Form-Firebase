@@ -27,16 +27,20 @@ function LoginScreen({navigation}) {
         setLoading(true);
         try{
             setLoading(true);
-            const auth = initializeAuth(app, {
-                persistence: getReactNativePersistence(ReactNativeAsyncStorage)
-              });	
+            const auth= getAuth(app);
+            // const auth = initializeAuth(app, {
+            //     persistence: getReactNativePersistence(ReactNativeAsyncStorage)
+            //   });	
+              Alert.alert("after const auth line");
             //await signInWithEmailAndPassword(auth, username, password);
             const response = await signInWithEmailAndPassword(auth, username, password);
             setLoading(false);
             setLogged(true);
-            AsyncStorage.setItem('token', response.user.getIdToken.toString());
-            AsyncStorage.setItem('isLoggedIn', JSON.stringify(true));
+            ReactNativeAsyncStorage.setItem('token', response.user.getIdToken.toString());
+            ReactNativeAsyncStorage.setItem('isLoggedIn', JSON.stringify(true));
+            ReactNativeAsyncStorage.setItem('email', response.user.email);
             Alert.alert("success", response.user.uid);
+            navigation.navigate("mainHome");
             return;
         } catch(error){
             setLoading(false);
