@@ -63,6 +63,7 @@ function RegisterScreen({navigation}) {
 				setLoading(false);
 				setLogged(true);
 				Alert.alert("success", response.user.uid);
+				navigation.navigate("mainHome");
 				return;
 			} catch(error){
 				setLoading(false);
@@ -181,10 +182,6 @@ function RegisterScreen({navigation}) {
 					<TouchableOpacity
 						onPress={() => {							
 							handleSignup();
-							if(logged){
-								navigation.navigate("mainHome");
-							}
-							//navigation.navigate("mainHomeLogged");
 						}}
 					>
 						<Image
