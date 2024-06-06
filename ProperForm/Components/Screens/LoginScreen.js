@@ -40,7 +40,7 @@ function LoginScreen({navigation}) {
             return;
         } catch(error){
             setLoading(false);
-            Alert.alert("Error in registering");
+            Alert.alert("Error in Login");
         }
 		
 	};
