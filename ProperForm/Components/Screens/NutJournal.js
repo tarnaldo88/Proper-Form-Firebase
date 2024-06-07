@@ -5,7 +5,6 @@ import axios from "axios";
 import {useFocusEffect} from "@react-navigation/native";
 import {Collapse,CollapseHeader, CollapseBody} from 'accordion-collapse-react-native';
 import {Dimensions} from "react-native";
-import {Storage} from "./../AsyncStorage/Storage";
 
 function NutJournal({navigation}) {
 	const [name, setName] = useState();
@@ -47,8 +46,8 @@ function NutJournal({navigation}) {
 		  // Do something when the screen is focused
 
 		console.log("1 " + userID);
-		Storage.load(setUserID, setName, setIsLog);
-		Storage.setSignOut();
+		// Storage.load(setUserID, setName, setIsLog);
+		// Storage.setSignOut();
  
 		console.log("2 " + userID);
 			

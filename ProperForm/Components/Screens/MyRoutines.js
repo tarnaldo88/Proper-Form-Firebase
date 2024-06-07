@@ -3,7 +3,6 @@ import {View, Image, Button, FlatList, Text, TouchableOpacity, SafeAreaView, Scr
 import {views, text, button, image} from "./Styles";
 import axios from "axios";
 import {useFocusEffect} from "@react-navigation/native";
-import {Storage} from "./../AsyncStorage/Storage";
 
 //function to setup the WorkoutHome screen
 function MyRoutines({navigation}) {	
@@ -14,8 +13,8 @@ function MyRoutines({navigation}) {
 	useFocusEffect(
 		React.useCallback(() => {
 		  // Do something when the screen is focused
-		  Storage.load(setUserID, setName, setIsLog);
-		  Storage.setSignOut();
+		//   Storage.load(setUserID, setName, setIsLog);
+		//   Storage.setSignOut();
 
 		  let results = getRoutineNames();
 		  // console.log("results = " + results);

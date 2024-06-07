@@ -13,7 +13,7 @@ import {logstyle, views, styleDrawContent} from "./Styles";
 import {Title, Caption, Paragraph} from "react-native-paper";
 import {useFocusEffect} from "@react-navigation/native";
 import Slider from "@react-native-community/slider";
-import {Storage} from "./../AsyncStorage/Storage";
+
 
 function AccountScreen({navigation}) {
     const [sex, setSex] = useState();
@@ -96,8 +96,8 @@ function AccountScreen({navigation}) {
 	useFocusEffect(
         React.useCallback(() => {
             // Do something when the screen is focused
-            Storage.load(setUserID, setName, setIsLog);
-            Storage.setSignOut();
+            // Storage.load(setUserID, setName, setIsLog);
+            // Storage.setSignOut();
 
             let results = loadProfile();
             //console.log("exampleState = " + route.params.exampleState[0].fat);
@@ -116,8 +116,8 @@ function AccountScreen({navigation}) {
     /*PostSignup takes the current state information and posts it to the api*/
 
     const PostSignup = async () => {
-        const registerData = await Storage.getRegisterData();
-        const detailsData = await Storage.getDetailsData();
+        // const registerData = await Storage.getRegisterData();
+        // const detailsData = await Storage.getDetailsData();
 
         await axios
             .post("http://52.53.203.248/ProperApi/api/UserInfo", {
@@ -184,21 +184,21 @@ function AccountScreen({navigation}) {
     };
 
     const submitPressed = async () => {
-        Storage.initDetailsData();
-        Storage.setDetailsData(
-            height,
-            weight,
-            goalWeight,
-            sex,
-            String(date).slice(4, 15)
-        );
+        // Storage.initDetailsData();
+        // Storage.setDetailsData(
+        //     height,
+        //     weight,
+        //     goalWeight,
+        //     sex,
+        //     String(date).slice(4, 15)
+        // );
         await PostSignup();
         // const detailsData = await Storage.getDetailsData();
         // console.log("Details Height: " + detailsData.height);
         // console.log("Details Weight: " + detailsData.weight);
         // console.log("Details Sex: " + detailsData.sex);
         // console.log("Details Birthday: " + detailsData.birthday);
-        Storage.clearRegisterDetails();
+        // Storage.clearRegisterDetails();
     };
 
     return (

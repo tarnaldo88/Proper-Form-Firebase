@@ -16,7 +16,6 @@ import {logstyle, userDetailsPage, image, button, views} from "./Styles";
 import {RadioButton} from "react-native-paper";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import Slider from "@react-native-community/slider";
-import {Storage} from "./../AsyncStorage/Storage";
 
 function UserDetailsEntry({navigation}) {
     const [sex, setSex] = useState();
@@ -31,33 +30,33 @@ function UserDetailsEntry({navigation}) {
 
     /*PostSignup takes the current state information and posts it to the api*/
     const PostSignup = async () => {
-        const registerData = await Storage.getRegisterData();
-        const detailsData = await Storage.getDetailsData();
+        // const registerData = await Storage.getRegisterData();
+        // const detailsData = await Storage.getDetailsData();
 
-        await axios
-            .post("http://52.53.203.248/ProperApi/api/UserInfo", {
-                username: registerData.username,
-                password: registerData.password,
-                email: registerData.email,
-                verified: Boolean(registerData.verified),
-                firstName: registerData.firstname,
-                lastName: registerData.lastname,
-                gender: detailsData.sex,
-                weight: Number(detailsData.weight),
-                goalWeight: Number(detailsData.goalWeight),
-                height: Number(detailsData.height),
-                birthday: detailsData.birthday,
-                token: registerData.token
-            })
+        // await axios
+        //     .post("http://52.53.203.248/ProperApi/api/UserInfo", {
+        //         username: registerData.username,
+        //         password: registerData.password,
+        //         email: registerData.email,
+        //         verified: Boolean(registerData.verified),
+        //         firstName: registerData.firstname,
+        //         lastName: registerData.lastname,
+        //         gender: detailsData.sex,
+        //         weight: Number(detailsData.weight),
+        //         goalWeight: Number(detailsData.goalWeight),
+        //         height: Number(detailsData.height),
+        //         birthday: detailsData.birthday,
+        //         token: registerData.token
+        //     })
 
-            .then(
-                response => {
-                    console.log(response);
-                },
-                error => {
-                    console.log(error);
-                }
-            );
+        //     .then(
+        //         response => {
+        //             console.log(response);
+        //         },
+        //         error => {
+        //             console.log(error);
+        //         }
+        //     );
     };
 
     roundToNearest = (num, rounding) => {
@@ -98,22 +97,22 @@ function UserDetailsEntry({navigation}) {
     };
 
     const submitPressed = async () => {
-        Storage.initDetailsData();
-        Storage.setDetailsData(
-            height,
-            weight,
-            goalWeight,
-            sex,
-            String(date).slice(4, 15)
-        );
-        let userID = await PostSignup();
-        console.log(userID);
+        // Storage.initDetailsData();
+        // Storage.setDetailsData(
+        //     height,
+        //     weight,
+        //     goalWeight,
+        //     sex,
+        //     String(date).slice(4, 15)
+        // );
+        // let userID = await PostSignup();
+        // console.log(userID);
         // const detailsData = await Storage.getDetailsData();
         // console.log("Details Height: " + detailsData.height);
         // console.log("Details Weight: " + detailsData.weight);
         // console.log("Details Sex: " + detailsData.sex);
         // console.log("Details Birthday: " + detailsData.birthday);
-        Storage.clearRegisterDetails();
+       // Storage.clearRegisterDetails();
     };
 
     return (

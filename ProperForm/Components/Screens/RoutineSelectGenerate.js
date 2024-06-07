@@ -4,7 +4,6 @@ import {views, button, image} from "./Styles";
 import {TouchableOpacity} from "react-native-gesture-handler";
 import {Paragraph} from "react-native-paper";
 import {useFocusEffect} from "@react-navigation/native";
-import {Storage} from "./../AsyncStorage/Storage";
 	
 function RoutineSelectGenerate({navigation}){
 
@@ -71,15 +70,15 @@ function RoutineSelectGenerate({navigation}){
 	const [userID, setUserID] = useState();
 
 	useFocusEffect(
-		React.useCallback(() => {
-		  // Do something when the screen is focused
-		  Storage.load(setUserID, setName, setIsLog);
-		  Storage.setSignOut();
-		  return () => {
-			// Do something when the screen is unfocused
-			// Useful for cleanup functions as
-		  };
-		}, [])
+		// React.useCallback(() => {
+		//   // Do something when the screen is focused
+		//   Storage.load(setUserID, setName, setIsLog);
+		//   Storage.setSignOut();
+		//   return () => {
+		// 	// Do something when the screen is unfocused
+		// 	// Useful for cleanup functions as
+		//   };
+		// }, [])
 	  );
 	
 		const ShowChest = () => {

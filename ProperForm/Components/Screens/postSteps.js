@@ -14,7 +14,6 @@ import {
 import {logstyle, views, text, button, image, nut} from "./Styles";
 import {useFocusEffect} from "@react-navigation/native";
 import SearchableDropdown from 'react-native-searchable-dropdown';
-import {Storage} from "./../AsyncStorage/Storage";
 
 //function to setup the create nutrition plan screen
 function postSteps({navigation, route}) {
@@ -27,18 +26,18 @@ function postSteps({navigation, route}) {
     const[fake,setFake] = useState(1);    
 	const [date, setDate] = useState("");
 
-    useFocusEffect(
-		React.useCallback( () => {  // Do something when the screen is focused	
-            Storage.load(setUserID, setName, setIsLog);
-            Storage.setSignOut();		
-			if(loading == true)
-				setLoad(false);
-			else
-				setLoad(true);
-		  return () => {
-		  };
-		}, [])
-	  );
+    // useFocusEffect(
+	// 	React.useCallback( () => {  // Do something when the screen is focused	
+    //         Storage.load(setUserID, setName, setIsLog);
+    //         Storage.setSignOut();		
+	// 		if(loading == true)
+	// 			setLoad(false);
+	// 		else
+	// 			setLoad(true);
+	// 	  return () => {
+	// 	  };
+	// 	}, [])
+	//   );
 
 	const handleSteps = text => {
         text = text.replace(/[^0-9]/g, '');

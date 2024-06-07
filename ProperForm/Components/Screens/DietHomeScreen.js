@@ -3,7 +3,6 @@ import {View, Image, TouchableOpacity, AsyncStorage} from "react-native";
 import {views, image, styleDrawContent} from "./Styles";
 import {Avatar, Title, Caption, Paragraph, Text} from "react-native-paper";
 import {useFocusEffect} from "@react-navigation/native";
-import {Storage} from "./../AsyncStorage/Storage";
 
 /* The DietHomeScreen function sets up the formatting of the Diet Screen page
 
@@ -19,8 +18,8 @@ function DietHomeScreen({navigation}) {
 	useFocusEffect(
 		React.useCallback(() => {
 		  // Do something when the screen is focused
-		  Storage.load(setUserID, setName, setIsLog);
-		  Storage.setSignOut();
+		//   Storage.load(setUserID, setName, setIsLog);
+		//   Storage.setSignOut();
 		  return () => {
 			// Do something when the screen is unfocused
 			// Useful for cleanup functions as

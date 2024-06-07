@@ -4,7 +4,7 @@ import {views, text, button, image, styleDrawContent} from "./Styles";
 import {ScrollView, TouchableOpacity} from "react-native-gesture-handler";
 import {Text} from "react-native-paper";
 import {useFocusEffect} from "@react-navigation/native";
-import {Storage} from "./../AsyncStorage/Storage";
+
 
 function ExerciseList({route, navigation}) {
 	const areaSelected = route.params.areaSelected;
@@ -17,8 +17,8 @@ function ExerciseList({route, navigation}) {
 	useFocusEffect(
 		React.useCallback(() => {
 		  // Do something when the screen is focused
-		  Storage.load(setUserID, setName, setIsLog);
-		  Storage.setSignOut();
+		//   Storage.load(setUserID, setName, setIsLog);
+		//   Storage.setSignOut();
 		  return () => {
 			// Do something when the screen is unfocused
 			// Useful for cleanup functions as

@@ -11,9 +11,6 @@ import {
 } from "react-native";
 import {MyNutrition} from "./MyNutrition";
 import {views, image, logstyle} from "./Styles";
-import {useFocusEffect} from "@react-navigation/native";
-//import {Storage} from "./../AsyncStorage/Storage";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LoginScreen } from "./LoginScreen";
 import { getAuth, signInWithEmailAndPassword, signOut, initializeAuth, getReactNativePersistence } from "firebase/auth";
 import app from "../firebase";

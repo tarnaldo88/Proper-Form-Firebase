@@ -3,10 +3,8 @@ import {View, Image, Text, SafeAreaView, ScrollView, TextInput} from "react-nati
 import {views, button, image, text, logstyle} from "./Styles";
 import {TouchableOpacity} from "react-native-gesture-handler";
 import {DisplayExButton} from "./../Display/DisplayExButtons";
-import axios from "axios";
-
 import {useFocusEffect} from "@react-navigation/native";
-import {Storage} from "./../AsyncStorage/Storage";
+
 
 let singleton = true;
 let num = [];
@@ -92,23 +90,7 @@ if(singleton){
 };
 const saveRoutine = async (num, routine) => {
 	//loop through and save every workout number and the name corresponding to it
-	for( let i = 0; i < 6; i++){
-		axios
-		.post("http://52.53.203.248/ProperApi/api/UserRoutines", {
-			RtName: routine,
-			RtNumber: num[i],
-			UserID: 25,
-		})
-
-		.then(
-			response => {
-				console.log(response);
-			},
-			error => {
-				console.log(error);
-			}
-		);		
-	}	
+	
 };
 
 function RoutineDisplayGenerated({navigation, route}) {
@@ -124,8 +106,7 @@ function RoutineDisplayGenerated({navigation, route}) {
 	useFocusEffect(
 		React.useCallback(() => {
 		  // Do something when the screen is focused
-		  Storage.load(setUserID, setName, setIsLog);
-		  Storage.setSignOut();
+		  
 		  return () => {
 			// Do something when the screen is unfocused
 			// Useful for cleanup functions as

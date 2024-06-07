@@ -4,7 +4,6 @@ import {views, image, styleDrawContent} from "./Styles";
 import {TouchableOpacity} from "react-native-gesture-handler";
 import {Avatar, Title, Caption, Paragraph} from "react-native-paper";
 import {useFocusEffect} from "@react-navigation/native";
-import {Storage} from "./../AsyncStorage/Storage";
 
 function RoutineHomeScreen({navigation}){
 		const [name, setName] = useState();
@@ -14,8 +13,8 @@ function RoutineHomeScreen({navigation}){
 		useFocusEffect(
 			React.useCallback(() => {
 			  // Do something when the screen is focused
-			  Storage.load(setUserID, setName, setIsLog);
-			  Storage.setSignOut();
+			//   Storage.load(setUserID, setName, setIsLog);
+			//   Storage.setSignOut();
 			  return () => {
 				// Do something when the screen is unfocused
 				// Useful for cleanup functions as

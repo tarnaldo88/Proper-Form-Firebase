@@ -12,7 +12,6 @@ import {
 	Alert
 } from "react-native";
 import {logstyle} from "./Styles";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { 
 	getAuth, 
 	createUserWithEmailAndPassword, 

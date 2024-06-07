@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { GiftedChat } from 'react-native-gifted-chat'
 // import AsyncStorage from '@react-native-community/async-storage'
-import {  AsyncStorage, StyleSheet, TextInput, View, YellowBox, Button, LogBox } from 'react-native'
+import {  StyleSheet, TextInput, View, YellowBox, Button, LogBox } from 'react-native'
 // import * as firebase from 'firebase'
 // import 'firebase/firestore'
 
@@ -65,7 +65,7 @@ function FriendChatA() {
     )
 
     async function readUser() {
-        const user = await AsyncStorage.getItem('user')
+        //const user = await AsyncStorage.getItem('user')
         if (user) {
             setUser(JSON.parse(user))
         }
@@ -73,7 +73,7 @@ function FriendChatA() {
     async function handlePress() {
         const _id = Math.random().toString(36).substring(7)
         const user = { _id, name }
-        await AsyncStorage.setItem('user', JSON.stringify(user))
+        //await AsyncStorage.setItem('user', JSON.stringify(user))
         setUser(user)
     }
     async function handleSend(messages) {

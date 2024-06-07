@@ -8,8 +8,6 @@ import {
     KeyboardAvoidingView,
     Alert
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from "axios";
 import {logstyle} from "./Styles";
 import app from "../firebase";
 import { getAuth, signInWithEmailAndPassword, getReactNativePersistence } from "firebase/auth";

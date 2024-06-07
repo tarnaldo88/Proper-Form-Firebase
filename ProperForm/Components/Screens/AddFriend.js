@@ -12,7 +12,6 @@ import {
 import {logstyle, text, nut} from "./Styles";
 import {useFocusEffect} from "@react-navigation/native";
 import SearchableDropdown from 'react-native-searchable-dropdown';
-import {Storage} from "./../AsyncStorage/Storage";
 
 //function to setup the create nutrition plan screen
 function AddFriend({navigation, route}) {
@@ -187,8 +186,8 @@ function AddFriend({navigation, route}) {
 	useFocusEffect(
 		React.useCallback(() => {
 		  // Do something when the screen is focused
-		  Storage.load(setUserID, setName, setIsLog);
-		  Storage.setSignOut();
+		//   Storage.load(setUserID, setName, setIsLog);
+		 // Storage.setSignOut();
 
 		  let results = loadFriends();
 		  //console.log("exampleState = " + route.params.exampleState[0].fat);

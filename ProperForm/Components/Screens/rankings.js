@@ -14,7 +14,6 @@ import {
 import {logstyle, views, text, button, image, nut} from "./Styles";
 import {useFocusEffect} from "@react-navigation/native";
 import SearchableDropdown from 'react-native-searchable-dropdown';
-import {Storage} from "./../AsyncStorage/Storage";
 import { List } from "react-native-paper";
 import {Collapse,CollapseHeader, CollapseBody} from 'accordion-collapse-react-native';
 import {Dimensions} from "react-native";

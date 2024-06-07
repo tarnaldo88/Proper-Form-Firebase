@@ -5,7 +5,6 @@ import axios from "axios";
 import {useFocusEffect} from "@react-navigation/native";
 import {Collapse,CollapseHeader, CollapseBody} from 'accordion-collapse-react-native';
 import {Dimensions} from "react-native";
-import {Storage} from "./../AsyncStorage/Storage";
 
 function Friends({navigation}) {
 
@@ -45,8 +44,8 @@ function Friends({navigation}) {
 		React.useCallback( () => {
 		  // Do something when the screen is focused
 
-		  Storage.load(setUserID, setName, setIsLog);
-		  Storage.setSignOut();
+		//   Storage.load(setUserID, setName, setIsLog);
+		//   Storage.setSignOut();
 			
 		  let results = testing();
 			console.log("results = " + results);

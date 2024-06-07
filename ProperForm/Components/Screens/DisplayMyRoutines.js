@@ -4,7 +4,6 @@ import {views, text, button, image} from "./Styles";
 import {DisplayExButton} from "./../Display/DisplayExButtons";
 import axios from "axios";
 import {useFocusEffect} from "@react-navigation/native";
-import {Storage} from "./../AsyncStorage/Storage";
 
 //function to setup the WorkoutHome screen
 function DisplayMyRoutines({navigation, route}) {

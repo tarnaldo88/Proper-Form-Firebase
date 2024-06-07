@@ -5,7 +5,7 @@ import { views, text, button, logstyle, nut, image} from "./Styles";
 import { LineChart } from "react-native-chart-kit"
 import { TextInput, SafeAreaView, ScrollView, Button } from "react-native";
 import axios from "axios";
-import {Storage} from "./../AsyncStorage/Storage";
+
 
 //function to setup the WorkoutHome screen
 function MyNutrition({ navigation }) {    
@@ -41,10 +41,10 @@ function MyNutrition({ navigation }) {
 		}, [])
 	  );
 
-      const test = async () => {
-        await Storage.load(setUserID, setName, setIsLog);
-        await Storage.setSignOut();
-      }
+    //   const test = async () => {
+    //     await Storage.load(setUserID, setName, setIsLog);
+    //     await Storage.setSignOut();
+    //   }
 
     const handleCurrent = text => {
         text = text.replace(/[^0-9]/g, '');

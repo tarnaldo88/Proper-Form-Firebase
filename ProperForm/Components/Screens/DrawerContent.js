@@ -15,7 +15,6 @@ import {DrawerContentScrollView, DrawerItem} from "@react-navigation/drawer";
 import {styleDrawContent} from "./Styles";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import {useFocusEffect} from "@react-navigation/native";
-import {Storage} from "./../AsyncStorage/Storage";
 
 //style={styles.row} can also be used for the View style holding the double paragraph caption section
 
@@ -31,8 +30,8 @@ function DrawerContent({props, navigation}) {
 	useEffect(
 		React.useCallback(() => {
 		  // Do something when the screen is focused
-		  Storage.load(setUserID, setName, setIsLog);
-		  Storage.signOut(setIsSign);
+		//   Storage.load(setUserID, setName, setIsLog);
+		//   Storage.signOut(setIsSign);
 		  return () => {
 			// Do something when the screen is unfocused
 			// Useful for cleanup functions as
@@ -182,7 +181,7 @@ function DrawerContent({props, navigation}) {
 					)}
 					label="Sign Out"
 					onPress={() => {
-						navigation.navigate("mainHome"), Storage.logout(setUserID, setName,setIsLog);
+						navigation.navigate("mainHome"); //Storage.logout(setUserID, setName,setIsLog);
 					}} //set to nothing until we get the login/logout functions working
 				/>
 			</Drawer.Section>

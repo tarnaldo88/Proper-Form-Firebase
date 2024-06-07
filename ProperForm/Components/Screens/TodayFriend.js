@@ -6,7 +6,6 @@ import axios from "axios";
 import {useFocusEffect} from "@react-navigation/native";
 import {Collapse,CollapseHeader, CollapseBody} from 'accordion-collapse-react-native';
 import {Dimensions} from "react-native";
-import {Storage} from "./../AsyncStorage/Storage";
 
 function TodayFriend({navigation}) {
 
@@ -41,48 +40,48 @@ function TodayFriend({navigation}) {
 	}
 
 	useFocusEffect(
-		React.useCallback( () => {
-		  // Do something when the screen is focused
-		  Storage.load(setUserID, setName, setIsLog);
-		  Storage.setSignOut();
+		// React.useCallback( () => {
+		//   // Do something when the screen is focused
+		//   Storage.load(setUserID, setName, setIsLog);
+		//   Storage.setSignOut();
 			
-		  let results = testing();
-			console.log("results = " + results);
+		//   let results = testing();
+		// 	console.log("results = " + results);
 
-			if(loading == true)
-				setLoad(false);
-			else
-				setLoad(true);
+		// 	if(loading == true)
+		// 		setLoad(false);
+		// 	else
+		// 		setLoad(true);
 
-		  return () => {			  
-			// Do something when the screen is unfocused
-			// Useful for cleanup functions as
-		  };
-		}, [])
+		//   return () => {			  
+		// 	// Do something when the screen is unfocused
+		// 	// Useful for cleanup functions as
+		//   };
+		// }, [])
 	  );
 
-	  const testing = async () => {		
-	   var arr = [];				
-	   const response = await axios.get("http://52.53.203.248/ProperApi/api/Friends/1", {})
-		   .then(
-			   response => {
-				   const nameList = response.data;					
-				   setLoad(true);
-				   var i = 0;
-				   for(i = 0; i < response.data.length; i++){
-					   arr.push(nameList[i]);
-				   }				   
-			   });
+	// const testing = async () => {		
+	//    var arr = [];				
+	//    const response = await axios.get("http://52.53.203.248/ProperApi/api/Friends/1", {})
+	// 	   .then(
+	// 		   response => {
+	// 			   const nameList = response.data;					
+	// 			   setLoad(true);
+	// 			   var i = 0;
+	// 			   for(i = 0; i < response.data.length; i++){
+	// 				   arr.push(nameList[i]);
+	// 			   }				   
+	// 		   });
 			   
-			   await addElement(arr);
+	// 		   await addElement(arr);
 
-			   if(loading == true)
-				setLoad(false);
-			   else
-				setLoad(true);
+	// 		   if(loading == true)
+	// 			setLoad(false);
+	// 		   else
+	// 			setLoad(true);
 
-			   return arr;
-   };
+	// 		   return arr;
+   	// };
 
 	return (		
 		<SafeAreaView style={styles.container}>				
