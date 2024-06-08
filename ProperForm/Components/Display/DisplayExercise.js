@@ -14,7 +14,7 @@ import {
 	logstyle,
 	exerciseStyle
 } from "./../Screens/Styles";
-// import YoutubePlayer from "react-native-youtube-iframe";
+import YoutubePlayer from "react-native-youtube-iframe";
 // <YoutubePlayer
 // 							height={200}
 // 							width={300}
@@ -22,7 +22,7 @@ import {
 // 							play={playing}
 // 							videoId={"ykJmrZ5v0Oo"}
 // 							onChangeState={onStateChange}
-// 						/>
+// />
 
 function DisplayExercise({val}) {
 	const [playing, setPlaying] = useState(false);
