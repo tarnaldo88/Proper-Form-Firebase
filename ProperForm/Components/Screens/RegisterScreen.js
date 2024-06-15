@@ -31,6 +31,8 @@ function RegisterScreen({navigation}) {
 	const [repw, setRePw] = useState();
 	//second email entry for checking
 	const [rem, setRem] = useState();
+	const [curWeight, setWeight] = useState(0);
+	const [goalWeight, setGoal] = useState(0);
 
 	const [isLoading, setLoading] = useState(false);
 	const [logged,setLogged] = useState(false);
@@ -47,6 +49,14 @@ function RegisterScreen({navigation}) {
 	};
 	const handleRemail = text => {
 		setRem(text);
+	};
+
+	const handleWeight = text => {
+		setWeight(text);
+	};
+
+	const handleGoal = text => {
+		setGoal(text);
 	};
 
 	async function handleSignup(){
@@ -176,6 +186,24 @@ function RegisterScreen({navigation}) {
 						placeholderTextColor="#9a73ef"
 						autoCapitalize="none"
 						onChangeText={handleRePw}
+            		/>
+					<TextInput
+						style={logstyle.input}
+						keyboardType="numeric"
+						underlineColorAndroid="transparent"
+						placeholder=" Enter Your current weight"
+						placeholderTextColor="#9a73ef"
+						autoCapitalize="none"
+						onChangeText={handleWeight}
+            		/>
+					<TextInput
+						style={logstyle.input}
+						keyboardType="numeric"
+						underlineColorAndroid="transparent"
+						placeholder=" Enter Your goal weight"
+						placeholderTextColor="#9a73ef"
+						autoCapitalize="none"
+						onChangeText={handleGoal}
             		/>
 					<Loading />
 					<TouchableOpacity
