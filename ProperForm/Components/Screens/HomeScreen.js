@@ -12,7 +12,7 @@ import {
 import {MyNutrition} from "./MyNutrition";
 import {views, image, logstyle} from "./Styles";
 import { LoginScreen } from "./LoginScreen";
-import { getAuth, signInWithEmailAndPassword, signOut, initializeAuth, getReactNativePersistence } from "firebase/auth";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import app from "../firebase";
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -53,15 +53,14 @@ function HomeScreen({navigation}) {
     }
 
     checkIfLoggedIn = () => {
-        firebase.auth().onAuthStateChanged(function(user)
-        {
-            if(user)
-            {
-               setIsLog(true);
+        const auth = getAuth(app);
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                setIsLog(true);
             } else {
                 navigation.navigate("Login");
             }
-        })
+        });
     }
 
     async function logoutUser(){

@@ -18,7 +18,7 @@ import {
 	signInWithEmailAndPassword, 
 	onAuthStateChanged, 
 	signOut 
-} from '@firebase/auth';
+} from 'firebase/auth';
 import app from "../firebase";
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 

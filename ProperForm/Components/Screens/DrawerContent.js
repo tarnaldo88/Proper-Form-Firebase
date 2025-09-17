@@ -22,7 +22,7 @@ function DrawerContent({props, navigation}) {
 	//values used to determine if dark theme is active or not
 	const [isDarkTheme, setIsDarkTheme] = React.useState(false);
 
-	const [name, setName] = useState();
+	const [name, setName] = useState("Username");
 	const [isLog, setIsLog] = useState();
 	const [isSign, setIsSign] = useState();
 	const [userID, setUserID] = useState();
