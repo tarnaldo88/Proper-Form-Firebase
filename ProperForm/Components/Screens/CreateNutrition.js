@@ -1,5 +1,6 @@
 import React, {useState, Fragment} from "react";
 import axios from "axios";
+import { Alert } from "react-native";
 import {
 	View,
 	Image,
@@ -78,28 +79,28 @@ function CreateNutrition({navigation, route}) {
 		setSelected(newArr);
 	}
 
-	  const loadFoods = async () => {		
-	   var arr = [];				
-	   const response = await axios.get("http://52.53.203.248/ProperApi/api/AllNuts", {})
-		   .then(
-			   response => {
-				   const nameList = response.data;					
-				   setLoad(true);
-				   var i = 0;
-				   for(i = 0; i < response.data.length; i++){
-					   arr.push(nameList[i]);
-				   }				   
-			   });
-			   
-			   await storeFoods(arr);
-
-			   if(loading == true)
-				setLoad(false);
-			   else
-				setLoad(true);
-
-			   return arr;
-   };
+	  const loadFoods = async () => {
+    const url = "http://52.53.203.248/ProperApi/api/AllNuts";
+    const arr = [];
+    try {
+      const response = await axios.get(url, { timeout: 10000 });
+      const nameList = response.data;
+      setLoad(true);
+      for (let i = 0; i < nameList.length; i++) {
+        arr.push(nameList[i]);
+      }
+      await storeFoods(arr);
+      setLoad((prev) => !prev);
+      return arr;
+    } catch (error) {
+      console.log("loadFoods error:", error);
+      Alert.alert(
+        "Network error",
+        "Unable to load nutrition items. Please check your internet connection and that the API is reachable."
+      );
+      return [];
+    }
+  };
 
 	const makeDate = () => {			
 		var day = new Date().getDate();
@@ -129,89 +130,101 @@ function CreateNutrition({navigation, route}) {
 	};
 
 	//axios call to post or put new food entry	
-	const PostFoodEntry = async () => {	
-		var arr;
-		await axios
-			.post("http://52.53.203.248/ProperApi/api/AllNuts", {
-				Calories: cal,
-				Fat: fat,
-				Carbs: carbs,
-				Protein: prot,
-				Sugar: sugar,
-				ItemName: food,
-
-			})
-			.then(
-				response => {
-					arr = response.data.id;
-					console.log("data.id = " + response.data.id);
-
-				},
-				error => {
-					
-					console.log(error);
-				}
-			);
-			return arr;
-	};
+	  const PostFoodEntry = async () => {
+    const url = "http://52.53.203.248/ProperApi/api/AllNuts";
+    try {
+      const response = await axios.post(
+        url,
+        {
+          Calories: cal,
+          Fat: fat,
+          Carbs: carbs,
+          Protein: prot,
+          Sugar: sugar,
+          ItemName: food,
+        },
+        { timeout: 10000 }
+      );
+      console.log("data.id = ", response.data?.id);
+      return response.data?.id;
+    } catch (error) {
+      console.log("PostFoodEntry error:", error);
+      Alert.alert(
+        "Network error",
+        "Unable to save food. Please try again later."
+      );
+      return null;
+    }
+  };
 
 		//axios call to post or put new food entry	
-		const PostUserFoodEntry = async (fId) => {	
-			
-
-			await axios
-				.post("http://52.53.203.248/ProperApi/api/NutEntries", {
-					FoodId: fId,
-					UserId: 25,
-					DateAdded: date,
-				})
-				.then(
-					response => {
-						console.log(response);
-					},
-					error => {
-						console.log(error);
-					}
-				);
-		};
+		    const PostUserFoodEntry = async (fId) => {
+      const url = "http://52.53.203.248/ProperApi/api/NutEntries";
+      try {
+        const response = await axios.post(
+          url,
+          {
+            FoodId: fId,
+            UserId: 25,
+            DateAdded: date,
+          },
+          { timeout: 10000 }
+        );
+        console.log("PostUserFoodEntry response:", response.status);
+      } catch (error) {
+        console.log("PostUserFoodEntry error:", error);
+        Alert.alert(
+          "Network error",
+          "Unable to save entry. Please try again later."
+        );
+      }
+    };
 
 				//axios call to post or put new food entry	where we pass in the date as well
-				const PostUserFoodEntryPassed = async (fId, Date) => {	
-					await axios
-						.post("http://52.53.203.248/ProperApi/api/NutEntries", {
-							FoodId: fId,
-							UserId: 25,
-							DateAdded: date,
-						})
-						.then(
-							response => {
-								console.log(response);
-							},
-							error => {
-								console.log(error);
-							}
-						);
-				};
+				        const PostUserFoodEntryPassed = async (fId, Date) => {
+          const url = "http://52.53.203.248/ProperApi/api/NutEntries";
+          try {
+            const response = await axios.post(
+              url,
+              {
+                FoodId: fId,
+                UserId: 25,
+                DateAdded: Date,
+              },
+              { timeout: 10000 }
+            );
+            console.log("PostUserFoodEntryPassed response:", response.status);
+          } catch (error) {
+            console.log("PostUserFoodEntryPassed error:", error);
+            Alert.alert(
+              "Network error",
+              "Unable to save entry. Please try again later."
+            );
+          }
+        };
 
-		/*Need to add an axios get call for specifically retrieving the food id by using the item name*/ 
-		const GetFoodID = async () => {
-			var arr = [];		
-			console.log("inside 1 " + food);	
-	  		 await axios.get("http://52.53.203.248/ProperApi/api/ItemByName/" + food, {})
-		   	.then(
-			   response => {
-				   console.log("inside 3 " + response.data.id );
-				   			arr.push(response.data.id);   
-			   });
-			   console.log("inside 4 " + arr[0]);
-			   return arr;
-		}
+		/*Need to add an axios get call for specifically retrieving the food id by using the item name*/    const GetFoodID = async () => {
+      const url = `http://52.53.203.248/ProperApi/api/ItemByName/${food}`;
+      try {
+        const response = await axios.get(url, { timeout: 10000 });
+        console.log("GetFoodID id:", response.data?.id);
+        return [response.data?.id];
+      } catch (error) {
+        console.log("GetFoodID error:", error);
+        Alert.alert(
+          "Network error",
+          "Unable to fetch food details. Please try again later."
+        );
+        return [];
+      }
+    }
 
-		const PostNewFood = async () => {
-			var retId = await PostFoodEntry();
-			setFoodId(retId);
-			await PostUserFoodEntry(retId);
-		}
+		    const PostNewFood = async () => {
+      const retId = await PostFoodEntry();
+      if (!retId) return;
+      setFoodId(retId);
+      await PostUserFoodEntry(retId);
+    }
 
 		const PostExistingFood = async (fId, foodName) => {
 			var Date = makeDate();
@@ -222,15 +235,15 @@ function CreateNutrition({navigation, route}) {
 		}
 
 
-	const validNav = async () => {		
-		console.log(date);
-		if(food === ""){
-			alert("Must Enter Name of Food Eaten");
-		} else {
-			PostNewFood();
-			return (navigation.navigate("nutJournal"));	
-		}		
-	};
+	    const validNav = async () => {
+      console.log(date);
+      if (food === "") {
+        alert("Must Enter Name of Food Eaten");
+      } else {
+        await PostNewFood();
+        return navigation.navigate("nutJournal");
+      }
+    };
 
 	const [name, setName] = useState();
 	const [isLog, setIsLog] = useState();
