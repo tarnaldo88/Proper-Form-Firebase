@@ -13,6 +13,7 @@ import {MyNutrition} from "./MyNutrition";
 import {views, image, logstyle} from "./Styles";
 import { LoginScreen } from "./LoginScreen";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { useFocusEffect } from "@react-navigation/native";
 import app from "../firebase";
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -48,8 +49,10 @@ function HomeScreen({navigation}) {
 
     async function getData(){
         const data = await ReactNativeAsyncStorage.getItem('isLoggedIn');
-        console.log(data, 'at home');
-        setIsLog(data);
+        // data is a string like "true" or "false"; convert to boolean
+        const val = data === 'true';
+        console.log('isLoggedIn storage:', data, '=>', val);
+        setIsLog(val);
     }
 
     checkIfLoggedIn = () => {
@@ -85,6 +88,17 @@ function HomeScreen({navigation}) {
     useEffect(() => {
         getData();
     }, []);
+
+    // Update login status whenever this screen gains focus
+    useFocusEffect(
+        React.useCallback(() => {
+            const auth = getAuth(app);
+            const unsubscribe = onAuthStateChanged(auth, (user) => {
+                setIsLog(!!user);
+            });
+            return () => unsubscribe();
+        }, [])
+    );
 
     return (
         <SafeAreaView style={views.Home}>
