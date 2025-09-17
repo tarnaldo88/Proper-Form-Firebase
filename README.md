@@ -1,6 +1,6 @@
-# ProperForm (Expo + React Native)
+# Proper Form (Expo + React Native)
 
-ProperForm is a React Native app built with Expo for fitness tracking. It includes user authentication (Firebase), routines, nutrition tracking, chat, and more.
+Proper Form is a React Native app built with Expo for fitness tracking. It includes user authentication (Firebase), routines, nutrition tracking, chat, and more.
 
 - React Native: 0.74.x
 - Expo SDK: 51
