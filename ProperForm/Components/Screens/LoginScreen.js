@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import {logstyle} from "./Styles";
 import app from "../firebase";
-import { getAuth, signInWithEmailAndPassword, getReactNativePersistence } from "firebase/auth";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 
 function LoginScreen({navigation}) {
@@ -26,17 +26,15 @@ function LoginScreen({navigation}) {
         try{
             setLoading(true);
             const auth= getAuth(app);
-            // const auth = initializeAuth(app, {
-            //     persistence: getReactNativePersistence(ReactNativeAsyncStorage)
-            //   });	
-              Alert.alert("after const auth line");
-            //await signInWithEmailAndPassword(auth, username, password);
             const response = await signInWithEmailAndPassword(auth, username, password);
             setLoading(false);
             setLogged(true);
-            ReactNativeAsyncStorage.setItem('token', response.user.getIdToken.toString());
-            ReactNativeAsyncStorage.setItem('isLoggedIn', JSON.stringify(true));
-            ReactNativeAsyncStorage.setItem('email', response.user.email);
+            const token = await response.user.getIdToken();
+            await ReactNativeAsyncStorage.setItem('token', token);
+            await ReactNativeAsyncStorage.setItem('isLoggedIn', JSON.stringify(true));
+            if (response.user?.email) {
+                await ReactNativeAsyncStorage.setItem('email', response.user.email);
+            }
             Alert.alert("success", response.user.uid);
             navigation.navigate("mainHome");
             return;
@@ -46,15 +44,6 @@ function LoginScreen({navigation}) {
         }
 		
 	};
-
-    async function Login(){
-        try{
-            const auth = getAuth(app);
-            await create
-        } catch(error) {
-
-        }
-    }
 
     useEffect(() => {
         //getData();

@@ -67,8 +67,9 @@ function RegisterScreen({navigation}) {
 				Alert.alert("about to createUser");
 				await createUserWithEmailAndPassword(auth, email, pw);
 				const response = await signInWithEmailAndPassword(auth, email, pw);
-				ReactNativeAsyncStorage.setItem('token', response.user.getIdToken.toString());
-            	ReactNativeAsyncStorage.setItem('isLoggedIn', JSON.stringify(true));
+				const token = await response.user.getIdToken();
+				await ReactNativeAsyncStorage.setItem('token', token);
+            	await ReactNativeAsyncStorage.setItem('isLoggedIn', JSON.stringify(true));
 				setLoading(false);
 				setLogged(true);
 				Alert.alert("success", response.user.uid);
