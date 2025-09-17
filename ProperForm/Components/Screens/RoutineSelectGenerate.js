@@ -70,16 +70,14 @@ function RoutineSelectGenerate({navigation}){
 	const [userID, setUserID] = useState();
 
 	useFocusEffect(
-		// React.useCallback(() => {
-		//   // Do something when the screen is focused
-		//   Storage.load(setUserID, setName, setIsLog);
-		//   Storage.setSignOut();
-		//   return () => {
-		// 	// Do something when the screen is unfocused
-		// 	// Useful for cleanup functions as
-		//   };
-		// }, [])
-	  );
+		React.useCallback(() => {
+          // Screen focused effect (no-op for now)
+          // e.g., load data or set up listeners here
+          return () => {
+            // Cleanup when screen is unfocused
+          };
+        }, [])
+      );
 	
 		const ShowChest = () => {
 			return chest ? (

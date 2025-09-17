@@ -60,49 +60,64 @@ function RegisterScreen({navigation}) {
 	};
 
 	async function handleSignup(){
-		if (ComparePassword() && CompareEmail()){
-			setLoading(true);
-			try{
-				const auth= getAuth(app);
-				Alert.alert("about to createUser");
-				await createUserWithEmailAndPassword(auth, email, pw);
-				const response = await signInWithEmailAndPassword(auth, email, pw);
-				const token = await response.user.getIdToken();
-				await ReactNativeAsyncStorage.setItem('token', token);
-            	await ReactNativeAsyncStorage.setItem('isLoggedIn', JSON.stringify(true));
-				setLoading(false);
-				setLogged(true);
-				Alert.alert("success", response.user.uid);
-				navigation.navigate("mainHome");
-				return;
-			} catch(error){
-				setLoading(false);
-				Alert.alert("Error in registering");
-			}
-		}
-	};
+        if (ComparePassword() && CompareEmail()){
+            if (!email || !pw) {
+                Alert.alert("Missing info", "Please enter email and password.");
+                return;
+            }
+            if (pw.length < 6) {
+                Alert.alert("Weak password", "Password must be at least 6 characters.");
+                return;
+            }
+            setLoading(true);
+            try{
+                const auth= getAuth(app);
+                await createUserWithEmailAndPassword(auth, email, pw);
+                const response = await signInWithEmailAndPassword(auth, email, pw);
+                const token = await response.user.getIdToken();
+                await ReactNativeAsyncStorage.setItem('token', token);
+                await ReactNativeAsyncStorage.setItem('isLoggedIn', JSON.stringify(true));
+                setLoading(false);
+                setLogged(true);
+                Alert.alert("success", response.user.uid);
+                navigation.navigate("mainHome");
+                return;
+            } catch(error){
+                setLoading(false);
+                const message = error?.message || 'Unknown error';
+                const code = error?.code ? `\n(${error.code})` : '';
+                Alert.alert("Register error", `${message}${code}`);
+            }
+        }
+    };
 
 	const ComparePassword = () => {
-		if (pw.localeCompare(repw) == 0) {
-			//strings are equal let user continue
-			return true;
-		} else {
-			//strings are not equal
-			Alert.alert("Password does not match");
-			return false;
-		}
-	};
+        const a = (pw || '').toString();
+        const b = (repw || '').toString();
+        if (!a || !b) {
+            Alert.alert("Missing password", "Please enter and confirm your password.");
+            return false;
+        }
+        if (a !== b) {
+            Alert.alert("Password does not match");
+            return false;
+        }
+        return true;
+    };
 
 	const CompareEmail = () => {
-		if (email.localeCompare(rem) == 0) {
-			//strings are equal let user continue
-			return true;
-		} else {
-			//strings are not equal
-			Alert.alert("Email does not match");
-			return false;
-		}
-	};
+        const a = (email || '').toString().trim().toLowerCase();
+        const b = (rem || '').toString().trim().toLowerCase();
+        if (!a || !b) {
+            Alert.alert("Missing email", "Please enter and confirm your email.");
+            return false;
+        }
+        if (a !== b) {
+            Alert.alert("Email does not match");
+            return false;
+        }
+        return true;
+    };
 	// const EmailValidation = () => {
 	// 	if (email !== "undefined" && rem !== "undefined") {
 	// 		var pattern = new RegExp(
