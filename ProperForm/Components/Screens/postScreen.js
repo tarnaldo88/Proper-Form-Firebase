@@ -64,7 +64,7 @@ class postScreen extends Component {
         // console.log(item.name)
         switch (item.name){
             case "Arnaldo":
-              this.props.navigation.navigate('test')
+              this.props.navigation.navigate('Messages')
                 break;
             case "Josh":
               this.props.navigation.navigate('Messages')

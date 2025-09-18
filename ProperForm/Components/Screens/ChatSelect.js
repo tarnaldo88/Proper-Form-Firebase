@@ -30,7 +30,7 @@ import {views, text, button, image} from "./Styles";
         // console.log(item.name)
         switch (item.name){
             case "John":
-              this.props.navigation.navigate('test')
+              this.props.navigation.navigate('Messages')
                 break;
             case "Josh":
               this.props.navigation.navigate('Messages')

@@ -4,10 +4,11 @@ import { View, Image, Text, TouchableOpacity, Dimensions } from "react-native";
 import { views, text, button, logstyle, nut, image} from "./Styles";
 import { LineChart } from "react-native-chart-kit"
 import { TextInput, SafeAreaView, ScrollView, Button } from "react-native";
-import axios from "axios";
+import app from "../firebase";
+import { getAuth } from "firebase/auth";
+import { getFirestore, doc, getDoc, setDoc, collection, addDoc, getDocs, query, orderBy, serverTimestamp } from "firebase/firestore";
 
-
-//function to setup the WorkoutHome screen
+//function to setup the Nutrtion Home screen
 function MyNutrition({ navigation }) {    
 
     const [xAxis, setXAxis] = useState(["1","2","3","4","5", "6", "7"]);
@@ -30,7 +31,6 @@ function MyNutrition({ navigation }) {
 		//   Storage.load(setUserID, setName, setIsLog);
 		//   Storage.setSignOut();
         //     console.log("mynut: " + userID);
-                test(); 
             testing();          
             
         console.log("mynut: " + userID);
@@ -41,10 +41,7 @@ function MyNutrition({ navigation }) {
 		}, [])
 	  );
 
-    //   const test = async () => {
-    //     await Storage.load(setUserID, setName, setIsLog);
-    //     await Storage.setSignOut();
-    //   }
+    const db = getFirestore(app);
 
     const handleCurrent = text => {
         text = text.replace(/[^0-9]/g, '');
@@ -109,84 +106,79 @@ function MyNutrition({ navigation }) {
     };
 
     const testing = async () => {
-        var arr = [];
-        var weightArr = [];	
-        var dateArr = [];			
-        const response = await axios.get("http://52.53.203.248/ProperApi/api/UserInfo/25", {})
-            .then(
-                response => {                    
-                    const goalWeight = response.data;
-                    arr.push(goalWeight);
-                    
-            });  
+        try {
+            const auth = getAuth(app);
+            const uid = auth.currentUser?.uid || "demoUser"; // fallback if not logged in
 
-        const gettingWeights = await axios.get("http://52.53.203.248/ProperApi/api/WeightHistory/25", {})
-        .then(
-            response => {
-                const nameList = response.data;	
-                var i = 0;
-                for(i = 0; i < response.data.length; i++){
-                    weightArr.push(nameList[i].weight);
-                    dateArr.push(nameList[i].date.substring(5,10));
-                }				   
-            });  
-             addElement(weightArr, dateArr);  
-             setGoal(arr[0].goalWeight);
+            // Fetch user goal
+            const userRef = doc(db, "users", uid);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+                const data = userSnap.data();
+                if (typeof data.goalWeight === 'number') {
+                    setGoal(data.goalWeight);
+                }
+            }
 
-        return weightArr;
+            // Fetch last weights ordered by date
+            const weightsRef = collection(db, "users", uid, "weightHistory");
+            const q = query(weightsRef, orderBy("date", "asc"));
+            const snap = await getDocs(q);
+            const weightArr = [];
+            const dateArr = [];
+            snap.forEach(d => {
+                const w = d.data();
+                if (typeof w.weight === 'number') {
+                    weightArr.push(w.weight);
+                    const dt = w.date?.toDate ? w.date.toDate() : new Date();
+                    const mm = String(dt.getMonth() + 1).padStart(2, '0');
+                    const dd = String(dt.getDate()).padStart(2, '0');
+                    dateArr.push(`${mm}-${dd}`);
+                }
+            });
+            if (weightArr.length >= 7) {
+                // take the last 7 entries
+                addElement(weightArr.slice(-7), dateArr.slice(-7));
+            } else if (weightArr.length > 0) {
+                // pad to 7 for chart display
+                const paddedW = Array(Math.max(0, 7 - weightArr.length)).fill(weightArr[0]).concat(weightArr);
+                const paddedD = Array(Math.max(0, 7 - dateArr.length)).fill(dateArr[0]).concat(dateArr);
+                addElement(paddedW.slice(-7), paddedD.slice(-7));
+            }
+            return weightArr;
+        } catch (e) {
+            console.log('Firestore fetch error (MyNutrition):', e);
+            return [];
+        }
     };
 
-
-
-
-    //axios call to post or put new food entry	
+    // Add current weight to Firestore under users/{uid}/weightHistory
     const postCurrent = async() =>{
-		axios
-			.post("http://52.53.203.248/ProperApi/api/WeightHistory", {
-				Weight: current,
-                Date: date, 
-                UserID:25,
-                weightChange:0,
-                Id:0               
-			})
-			.then(
-				response => {
-					console.log("response = " + response.data);
-                    if(response.data == true){
-                        adjust();
-                    } 
-				},
-				error => {
-					console.log(error);
-				}
-			);
-	};
-   
+        try {
+            const auth = getAuth(app);
+            const uid = auth.currentUser?.uid || "demoUser";
+            const weightsRef = collection(db, "users", uid, "weightHistory");
+            await addDoc(weightsRef, {
+                weight: current,
+                date: serverTimestamp(),
+            });
+            // refresh chart locally
+            adjust();
+        } catch (e) {
+            console.log('Firestore write error (postCurrent):', e);
+        }
+    };
+
     const postGoal = async() =>{
-		axios
-			.put("http://52.53.203.248/ProperApi/api/UserInfo/25", {
-				GoalWeight: goal,
-                Username: "",
-                Password: "",
-                Email: "",
-                Verified: false,
-                FirstName: "",
-                LastName: "",
-                Gender: null,
-                Height: 0,
-                Birthday: null,
-                Token: "",
-                UserID: 25,
-			})
-			.then(
-				response => {
-					console.log(response);
-				},
-				error => {
-					console.log(error);
-				}
-			);
-	};
+        try {
+            const auth = getAuth(app);
+            const uid = auth.currentUser?.uid || "demoUser";
+            const userRef = doc(db, "users", uid);
+            await setDoc(userRef, { goalWeight: goal }, { merge: true });
+        } catch (e) {
+            console.log('Firestore write error (postGoal):', e);
+        }
+    };
 
     return (
         <SafeAreaView>
