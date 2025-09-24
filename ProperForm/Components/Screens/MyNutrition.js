@@ -16,13 +16,15 @@ function MyNutrition({ navigation }) {
     const [current,setCurrent] = useState(33);
     const [goal,setGoal] = useState(22);
     const [date, setDate] = useState("");
-		{ weight: "0", weightChange: "0", date: "date"},		
-	  ]);	
-	const [exampleState, setExampleState] = useState(initialElements);
+    const [initialElements, changeEl]  = useState([
+        { weight: "0", weightChange: "0", date: "date"},
+    ]);
+    const [exampleState, setExampleState] = useState(initialElements);
     const [name, setName] = useState();
     const [isLog, setIsLog] = useState();
     const [isSign, setIsSign] = useState(false);
     const [userID, setUserID] = useState();
+    const db = getFirestore(app);
 
 	useFocusEffect(
 		React.useCallback(() => {
@@ -76,20 +78,17 @@ function MyNutrition({ navigation }) {
 		}, [])
 	);
 
-	const db = getFirestore(app);
+	// db declared above
 
 	const handleCurrent = text => {
-		text = text.replace(/[^0-9]/g, '');
-		setCurrent(parseInt(text));
-		setDate(makeDate());
-		postCurrent();
-        setDate(makeDate());	
+        text = text.replace(/[^0-9]/g, '');
+        setCurrent(parseInt(text)); 
+        setDate(makeDate());
     }
     const handleGoal = text => {
         text = text.replace(/[^0-9]/g, '');
         setGoal(parseInt(text));		
     }
-
     const makeDate = () => {			
 		var day = new Date().getDate();
 		var month = new Date().getMonth() + 1;
@@ -148,14 +147,17 @@ function MyNutrition({ navigation }) {
     const postCurrent = async() =>{
         try {
             const auth = getAuth(app);
-            const uid = auth.currentUser?.uid || "demoUser";
+            const uid = auth.currentUser?.uid;
+            if (!uid) {
+                Alert.alert('Sign in required', 'Please sign in to save your current weight.');
+                return;
+            }
             const weightsRef = collection(db, "users", uid, "weightHistory");
             await addDoc(weightsRef, {
                 weight: current,
                 date: serverTimestamp(),
             });
-            // refresh chart locally
-            adjust();
+            // No local adjust(); realtime listener will update the chart
         } catch (e) {
             console.log('Firestore write error (postCurrent):', e);
         }
@@ -164,7 +166,11 @@ function MyNutrition({ navigation }) {
     const postGoal = async() =>{
         try {
             const auth = getAuth(app);
-            const uid = auth.currentUser?.uid || "demoUser";
+            const uid = auth.currentUser?.uid;
+            if (!uid) {
+                Alert.alert('Sign in required', 'Please sign in to save your goal weight.');
+                return;
+            }
             const userRef = doc(db, "users", uid);
             await setDoc(userRef, { goalWeight: goal }, { merge: true });
         } catch (e) {
