@@ -46,8 +46,8 @@ function MyRoutines({navigation}) {
 				newArr = [...newArr , {id: i, rout: results[i]}];
 			}
 		}
-		console.log(newArr[1].rout);
 		setRout(newArr);
+		setLoad(l => !l);
 	};	
 	
 	const getRoutineNames = async () => {
