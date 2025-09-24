@@ -21,14 +21,16 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Auth with AsyncStorage persistence for React Native (idempotent)
+// Initialize Auth with AsyncStorage persistence for React Native
+// Important: initializeAuth MUST be called before any getAuth(app) usage in React Native.
 let auth;
 try {
-  auth = getAuth(app);
-} catch (e) {
   auth = initializeAuth(app, {
     persistence: getReactNativePersistence(ReactNativeAsyncStorage),
   });
+} catch (e) {
+  // If Auth was already initialized elsewhere, get existing instance
+  auth = getAuth(app);
 }
 
 export { auth };
