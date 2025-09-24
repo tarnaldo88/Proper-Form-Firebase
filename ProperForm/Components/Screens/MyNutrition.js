@@ -1,12 +1,12 @@
 import React, {useState, useEffect} from "react";
 import {useFocusEffect} from "@react-navigation/native";
-import { View, Image, Text, TouchableOpacity, Dimensions } from "react-native";
+import { View, Image, Text, TouchableOpacity, Dimensions, Alert } from "react-native";
 import { views, text, button, logstyle, nut, image} from "./Styles";
 import { LineChart } from "react-native-chart-kit"
 import { TextInput, SafeAreaView, ScrollView, Button } from "react-native";
 import app from "../firebase";
 import { getAuth } from "firebase/auth";
-import { getFirestore, doc, getDoc, setDoc, collection, addDoc, getDocs, query, orderBy, serverTimestamp } from "firebase/firestore";
+import { getFirestore, doc, getDoc, setDoc, collection, addDoc, getDocs, query, orderBy, serverTimestamp, onSnapshot } from "firebase/firestore";
 
 //function to setup the Nutrtion Home screen
 function MyNutrition({ navigation }) {    
@@ -16,36 +16,73 @@ function MyNutrition({ navigation }) {
     const [current,setCurrent] = useState(33);
     const [goal,setGoal] = useState(22);
     const [date, setDate] = useState("");
-    const [initialElements, changeEl]  = useState([
 		{ weight: "0", weightChange: "0", date: "date"},		
 	  ]);	
 	const [exampleState, setExampleState] = useState(initialElements);
     const [name, setName] = useState();
     const [isLog, setIsLog] = useState();
-	const [isSign, setIsSign] = useState(false);
+    const [isSign, setIsSign] = useState(false);
     const [userID, setUserID] = useState();
 
 	useFocusEffect(
 		React.useCallback(() => {
-		  // Do something when the screen is focused
-		//   Storage.load(setUserID, setName, setIsLog);
-		//   Storage.setSignOut();
-        //     console.log("mynut: " + userID);
-            testing();          
-            
-        console.log("mynut: " + userID);
-		  return () => {
-			// Do something when the screen is unfocused
-			// Useful for cleanup functions as
-		  };
+			const auth = getAuth(app);
+			const uid = auth.currentUser?.uid;
+			if (!uid) {
+				Alert.alert('Sign in required', 'Please sign in to view and save your nutrition data.');
+				return () => {};
+			}
+
+			// Subscribe to user goal
+			const userRef = doc(db, "users", uid);
+			const unsubUser = onSnapshot(userRef, (snap) => {
+				if (snap.exists()) {
+					const data = snap.data();
+					if (typeof data.goalWeight === 'number') {
+						setGoal(data.goalWeight);
+					}
+				}
+			}, (err) => console.log('onSnapshot user error:', err));
+
+			// Subscribe to weight history
+			const weightsRef = collection(db, "users", uid, "weightHistory");
+			const qWeights = query(weightsRef, orderBy("date", "asc"));
+			const unsubWeights = onSnapshot(qWeights, (snap) => {
+				const weightArr = [];
+				const dateArr = [];
+				snap.forEach(d => {
+					const w = d.data();
+					if (typeof w.weight === 'number') {
+						weightArr.push(w.weight);
+						const dt = w.date?.toDate ? w.date.toDate() : new Date();
+						const mm = String(dt.getMonth() + 1).padStart(2, '0');
+						const dd = String(dt.getDate()).padStart(2, '0');
+						dateArr.push(`${mm}-${dd}`);
+					}
+				});
+				if (weightArr.length >= 7) {
+					addElement(weightArr.slice(-7), dateArr.slice(-7));
+				} else if (weightArr.length > 0) {
+					const paddedW = Array(Math.max(0, 7 - weightArr.length)).fill(weightArr[0]).concat(weightArr);
+					const paddedD = Array(Math.max(0, 7 - dateArr.length)).fill(dateArr[0]).concat(dateArr);
+					addElement(paddedW.slice(-7), paddedD.slice(-7));
+				}
+			}, (err) => console.log('onSnapshot weights error:', err));
+
+			return () => {
+				unsubUser && unsubUser();
+				unsubWeights && unsubWeights();
+			};
 		}, [])
-	  );
+	);
 
-    const db = getFirestore(app);
+	const db = getFirestore(app);
 
-    const handleCurrent = text => {
-        text = text.replace(/[^0-9]/g, '');
-        setCurrent(parseInt(text));	
+	const handleCurrent = text => {
+		text = text.replace(/[^0-9]/g, '');
+		setCurrent(parseInt(text));
+		setDate(makeDate());
+		postCurrent();
         setDate(makeDate());	
     }
     const handleGoal = text => {
@@ -105,52 +142,7 @@ function MyNutrition({ navigation }) {
         console.log("adjusted");
     };
 
-    const testing = async () => {
-        try {
-            const auth = getAuth(app);
-            const uid = auth.currentUser?.uid || "demoUser"; // fallback if not logged in
-
-            // Fetch user goal
-            const userRef = doc(db, "users", uid);
-            const userSnap = await getDoc(userRef);
-            if (userSnap.exists()) {
-                const data = userSnap.data();
-                if (typeof data.goalWeight === 'number') {
-                    setGoal(data.goalWeight);
-                }
-            }
-
-            // Fetch last weights ordered by date
-            const weightsRef = collection(db, "users", uid, "weightHistory");
-            const q = query(weightsRef, orderBy("date", "asc"));
-            const snap = await getDocs(q);
-            const weightArr = [];
-            const dateArr = [];
-            snap.forEach(d => {
-                const w = d.data();
-                if (typeof w.weight === 'number') {
-                    weightArr.push(w.weight);
-                    const dt = w.date?.toDate ? w.date.toDate() : new Date();
-                    const mm = String(dt.getMonth() + 1).padStart(2, '0');
-                    const dd = String(dt.getDate()).padStart(2, '0');
-                    dateArr.push(`${mm}-${dd}`);
-                }
-            });
-            if (weightArr.length >= 7) {
-                // take the last 7 entries
-                addElement(weightArr.slice(-7), dateArr.slice(-7));
-            } else if (weightArr.length > 0) {
-                // pad to 7 for chart display
-                const paddedW = Array(Math.max(0, 7 - weightArr.length)).fill(weightArr[0]).concat(weightArr);
-                const paddedD = Array(Math.max(0, 7 - dateArr.length)).fill(dateArr[0]).concat(dateArr);
-                addElement(paddedW.slice(-7), paddedD.slice(-7));
-            }
-            return weightArr;
-        } catch (e) {
-            console.log('Firestore fetch error (MyNutrition):', e);
-            return [];
-        }
-    };
+    // Removed one-time fetch in favor of realtime listeners above
 
     // Add current weight to Firestore under users/{uid}/weightHistory
     const postCurrent = async() =>{
