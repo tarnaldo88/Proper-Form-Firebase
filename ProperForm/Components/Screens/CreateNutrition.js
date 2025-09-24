@@ -139,29 +139,57 @@ function CreateNutrition({navigation, route}) {
         return ( year + "-" + month + "-" + day + "T" + hour + ":" + min + ":" + sec);
     };
 
+	// Validate and handle navigation
+	const validNav = async () => {
+	  console.log(date);
+	  if (food === "") {
+	    Alert.alert('Must Enter Name of Food Eaten');
+	    return;
+	  }
+
+	  try {
+	    await PostNewFood();
+	  } catch (e) {
+	    console.log('Error in validNav:', e);
+	    Alert.alert('Error', 'Unable to process your request.');
+	  }
+	};
+
 	// Save a new food entry to Firestore for the current user
 	const PostNewFood = async () => {
-	  const validNav = async () => {
-	    console.log(date);
-	    if (food === "") {
-	      Alert.alert('Must Enter Name of Food Eaten');
+	  try {
+	    const auth = getAuth(app);
+	    const db = getFirestore(app);
+	    const user = auth.currentUser;
+
+	    if (!user) {
+	      Alert.alert('Error', 'User not authenticated');
 	      return;
 	    }
 
-	    try {
-	      const auth = getAuth(app);
-	      // Add your Firestore logic here
-	      // ...
-	      Alert.alert('Saved', `${data.name || foodName} added successfully`);
-	      navigation.navigate("nutJournal");
-	    } catch (e) {
-	      console.log('Firestore duplicate error (PostExistingFood):', e);
-	      Alert.alert('Error', 'Unable to add food entry.');
-	    }
-	  };
+	    // Add your Firestore logic here
+	    const foodData = {
+	      name: food,
+	      calories: cal,
+	      protein: prot,
+	      carbs: carbs,
+	      sugar: sugar,
+	      fat: fat,
+	      date: date || new Date().toISOString(),
+	      userId: user.uid,
+	      createdAt: serverTimestamp()
+	    };
 
-	  await validNav();
-    };
+	    const docRef = await addDoc(collection(db, 'nutrition'), foodData);
+	    console.log('Document written with ID: ', docRef.id);
+	    
+	    Alert.alert('Success', 'Food entry added successfully');
+	    navigation.navigate("nutJournal");
+	  } catch (e) {
+	    console.log('Firestore error:', e);
+	    throw e; // Re-throw to be caught by validNav
+	  }
+	};
 
 	const [name, setName] = useState();
 	const [isLog, setIsLog] = useState();
