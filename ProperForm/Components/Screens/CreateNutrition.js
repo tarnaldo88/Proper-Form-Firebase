@@ -141,23 +141,26 @@ function CreateNutrition({navigation, route}) {
 
 	// Save a new food entry to Firestore for the current user
 	const PostNewFood = async () => {
-	  try {
-	    const auth = getAuth(app);
-{{ ... }}
-	    Alert.alert('Saved', `${data.name || foodName} added successfully`);
-	    navigation.navigate("nutJournal");
-	  } catch (e) {
-	    console.log('Firestore duplicate error (PostExistingFood):', e);
-	    Alert.alert('Error', 'Unable to add food entry.');
-	  }
+	  const validNav = async () => {
+	    console.log(date);
+	    if (food === "") {
+	      Alert.alert('Must Enter Name of Food Eaten');
+	      return;
+	    }
 
-    const validNav = async () => {
-      console.log(date);
-      if (food === "") {
-        Alert.alert('Must Enter Name of Food Eaten');
-      } else {
-        await PostNewFood();
-      }
+	    try {
+	      const auth = getAuth(app);
+	      // Add your Firestore logic here
+	      // ...
+	      Alert.alert('Saved', `${data.name || foodName} added successfully`);
+	      navigation.navigate("nutJournal");
+	    } catch (e) {
+	      console.log('Firestore duplicate error (PostExistingFood):', e);
+	      Alert.alert('Error', 'Unable to add food entry.');
+	    }
+	  };
+
+	  await validNav();
     };
 
 	const [name, setName] = useState();
