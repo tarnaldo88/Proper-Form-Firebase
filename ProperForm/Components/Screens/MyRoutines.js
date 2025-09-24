@@ -100,7 +100,17 @@ function MyRoutines({navigation}) {
 										// { routName: item.item.rout }										
 									);
 								}}
-								style={text.appButtonContainer}
+								style={[text.appButtonContainer, {
+									width: '100%',
+									maxWidth: 400, // Optional: max width for better appearance on tablets
+									backgroundColor: '#aa2a2a', // Slightly lighter than background
+									borderRadius: 8,
+									elevation: 3, // Android shadow
+									shadowColor: '#000', // iOS shadow
+									shadowOffset: { width: 0, height: 2 },
+									shadowOpacity: 0.25,
+									shadowRadius: 3.84,
+								}]}
 							>
 								<Text style={ text.appButtonText}>{item.item.rout}</Text>					
 							</TouchableOpacity>
