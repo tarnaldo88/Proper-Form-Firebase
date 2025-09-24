@@ -1,5 +1,4 @@
 import React, {useState, Fragment} from "react";
-import axios from "axios";
 import { Alert } from "react-native";
 import {
 	View,
@@ -13,6 +12,9 @@ import {
 import {logstyle, text, nut} from "./Styles";
 import {useFocusEffect} from "@react-navigation/native";
 import SearchableDropdown from 'react-native-searchable-dropdown';
+import app from "../firebase";
+import { getAuth } from "firebase/auth";
+import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, getDocs, doc, getDoc } from "firebase/firestore";
 
 //function to setup the create nutrition plan screen
 function CreateNutrition({navigation, route}) {
@@ -29,7 +31,7 @@ function CreateNutrition({navigation, route}) {
 	const [loading, setLoad] = useState(false);
 	const [selectedItems, setSelected] = useState(
 		[
-			{ id: 0, fId: 0, name : "", fat: "0", sugar: "0", carbs: "0", protein: "0", totCal: "0", date: "date"},
+			{ id: 0, fId: "", name : "", fat: 0, sugar: 0, carbs: 0, protein: 0, totCal: 0, date: "date"},
 		]);
 
 	const handleEntryName = text => {
@@ -67,37 +69,46 @@ function CreateNutrition({navigation, route}) {
 			//for first element, add each entry manually since array is empty and without structure
 
 			if( i == 0) {
-				newArr = [{ id: i, fId: results[i].id, name: results[i].itemName, fat: results[i].fat, sugar: results[i].sugar,
-							carbs:results[i].carbs, protein: results[i].protein, totCal: results[i].calories, date: results[i].dateAdded}];
+				newArr = [{ id: i, fId: results[i].fId, name: results[i].name, fat: results[i].fat, sugar: results[i].sugar,
+							carbs: results[i].carbs, protein: results[i].protein, totCal: results[i].totCal, date: results[i].date}];
 			} else {
 				//afterwards, add on to existing array
 				newArr = [...newArr ,
-					{ id: i, fId: results[i].id, name: results[i].itemName, fat: results[i].fat, sugar: results[i].sugar,
-						carbs:results[i].carbs, protein: results[i].protein, totCal: results[i].calories, date: results[i].dateAdded}];
+					{ id: i, fId: results[i].fId, name: results[i].name, fat: results[i].fat, sugar: results[i].sugar,
+						carbs: results[i].carbs, protein: results[i].protein, totCal: results[i].totCal, date: results[i].date}];
 			}			
 		}	 
 		setSelected(newArr);
 	}
 
 	  const loadFoods = async () => {
-    const url = "http://52.53.203.248/ProperApi/api/AllNuts";
-    const arr = [];
     try {
-      const response = await axios.get(url, { timeout: 10000 });
-      const nameList = response.data;
-      setLoad(true);
-      for (let i = 0; i < nameList.length; i++) {
-        arr.push(nameList[i]);
-      }
+      const auth = getAuth(app);
+      const uid = auth.currentUser?.uid;
+      if (!uid) return [];
+      const db = getFirestore(app);
+      const foodsRef = collection(db, "users", uid, "foodEntries");
+      const q = query(foodsRef, orderBy("date", "desc"));
+      const snap = await getDocs(q);
+      const arr = [];
+      snap.forEach(d => {
+        const data = d.data();
+        arr.push({
+          fId: d.id,
+          name: data.name,
+          fat: data.fat || 0,
+          sugar: data.sugar || 0,
+          carbs: data.carbs || 0,
+          protein: data.protein || 0,
+          totCal: data.calories || 0,
+          date: data.date?.toDate ? data.date.toDate().toISOString().substring(0,10) : "",
+        });
+      });
       await storeFoods(arr);
       setLoad((prev) => !prev);
       return arr;
     } catch (error) {
-      console.log("loadFoods error:", error);
-      Alert.alert(
-        "Network error",
-        "Unable to load nutrition items. Please check your internet connection and that the API is reachable."
-      );
+      console.log("loadFoods Firestore error:", error);
       return [];
     }
   };
@@ -114,140 +125,43 @@ function CreateNutrition({navigation, route}) {
 			month = "0" + month;
 		}
 		if (day < 10) {
-			day = "0" + day;
 		}
         if (hour < 10) {
 			hour = "0" + hour;
 		}
         if (min < 10) {
-			min = "0" + min;
-		}
+            min = "0" + min;
+        }
         if (sec < 10) {
-			sec = "0" + sec;
-		}
-		// console.log("time = " + year + "-" + month + "-" + day + "T" + hour + ":" + min + ":" + sec)
-		return ( year + "-" + month + "-" + day + "T" + hour + ":" + min + ":" + sec);
-	};
-
-	//axios call to post or put new food entry	
-	  const PostFoodEntry = async () => {
-    const url = "http://52.53.203.248/ProperApi/api/AllNuts";
-    try {
-      const response = await axios.post(
-        url,
-        {
-          Calories: cal,
-          Fat: fat,
-          Carbs: carbs,
-          Protein: prot,
-          Sugar: sugar,
-          ItemName: food,
-        },
-        { timeout: 10000 }
-      );
-      console.log("data.id = ", response.data?.id);
-      return response.data?.id;
-    } catch (error) {
-      console.log("PostFoodEntry error:", error);
-      Alert.alert(
-        "Network error",
-        "Unable to save food. Please try again later."
-      );
-      return null;
-    }
-  };
-
-		//axios call to post or put new food entry	
-		    const PostUserFoodEntry = async (fId) => {
-      const url = "http://52.53.203.248/ProperApi/api/NutEntries";
-      try {
-        const response = await axios.post(
-          url,
-          {
-            FoodId: fId,
-            UserId: 25,
-            DateAdded: date,
-          },
-          { timeout: 10000 }
-        );
-        console.log("PostUserFoodEntry response:", response.status);
-      } catch (error) {
-        console.log("PostUserFoodEntry error:", error);
-        Alert.alert(
-          "Network error",
-          "Unable to save entry. Please try again later."
-        );
-      }
+            sec = "0" + sec;
+        }
+        // console.log("time = " + year + "-" + month + "-" + day + "T" + hour + ":" + min + ":" + sec)
+        return ( year + "-" + month + "-" + day + "T" + hour + ":" + min + ":" + sec);
     };
 
-				//axios call to post or put new food entry	where we pass in the date as well
-				        const PostUserFoodEntryPassed = async (fId, Date) => {
-          const url = "http://52.53.203.248/ProperApi/api/NutEntries";
-          try {
-            const response = await axios.post(
-              url,
-              {
-                FoodId: fId,
-                UserId: 25,
-                DateAdded: Date,
-              },
-              { timeout: 10000 }
-            );
-            console.log("PostUserFoodEntryPassed response:", response.status);
-          } catch (error) {
-            console.log("PostUserFoodEntryPassed error:", error);
-            Alert.alert(
-              "Network error",
-              "Unable to save entry. Please try again later."
-            );
-          }
-        };
+	// Save a new food entry to Firestore for the current user
+	const PostNewFood = async () => {
+	  try {
+	    const auth = getAuth(app);
+{{ ... }}
+	    Alert.alert('Saved', `${data.name || foodName} added successfully`);
+	    navigation.navigate("nutJournal");
+	  } catch (e) {
+	    console.log('Firestore duplicate error (PostExistingFood):', e);
+	    Alert.alert('Error', 'Unable to add food entry.');
+	  }
 
-		/*Need to add an axios get call for specifically retrieving the food id by using the item name*/    const GetFoodID = async () => {
-      const url = `http://52.53.203.248/ProperApi/api/ItemByName/${food}`;
-      try {
-        const response = await axios.get(url, { timeout: 10000 });
-        console.log("GetFoodID id:", response.data?.id);
-        return [response.data?.id];
-      } catch (error) {
-        console.log("GetFoodID error:", error);
-        Alert.alert(
-          "Network error",
-          "Unable to fetch food details. Please try again later."
-        );
-        return [];
-      }
-    }
-
-		    const PostNewFood = async () => {
-      const retId = await PostFoodEntry();
-      if (!retId) return;
-      setFoodId(retId);
-      await PostUserFoodEntry(retId);
-    }
-
-		const PostExistingFood = async (fId, foodName) => {
-			var Date = makeDate();
-			setDate(Date);
-			await PostUserFoodEntryPassed(fId, Date);
-			alert(foodName + " added succesfully");
-			navigation.navigate("nutJournal");
-		}
-
-
-	    const validNav = async () => {
+    const validNav = async () => {
       console.log(date);
       if (food === "") {
-        alert("Must Enter Name of Food Eaten");
+        Alert.alert('Must Enter Name of Food Eaten');
       } else {
         await PostNewFood();
-        return navigation.navigate("nutJournal");
       }
     };
 
 	const [name, setName] = useState();
 	const [isLog, setIsLog] = useState();
-	const [userID, setUserID] = useState();
 
 	useFocusEffect(
 		React.useCallback(() => {

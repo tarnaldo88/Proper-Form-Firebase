@@ -1,8 +1,11 @@
-import React, { useState } from "react";
-import { SafeAreaView, Button, FlatList, StyleSheet, View, Image, Text, TouchableOpacity, StatusBar} from "react-native";
+import React, { useState, useEffect } from "react";
+import { SafeAreaView, Button, FlatList, StyleSheet, View, Image, Text, TouchableOpacity, StatusBar, Alert} from "react-native";
 import {views, text, button, image, Nutstyles} from "./Styles";
-import axios from "axios";
 import {useFocusEffect} from "@react-navigation/native";
+import app from "../firebase";
+import { getAuth } from "firebase/auth";
+import { getFirestore, collection, getDocs, query, orderBy } from "firebase/firestore";
+
 import {Collapse,CollapseHeader, CollapseBody} from 'accordion-collapse-react-native';
 import {Dimensions} from "react-native";
 
@@ -18,84 +21,9 @@ function NutJournal({navigation}) {
 	const [loading, setLoad] = useState(false);
 	
 	const addElement = async (results) => {
-
 		var newArr = [];
 		var i = 0;
-
-		//loop to go through all entries and add them to array
-		for(i = 0; i < results.length; i++) {
-
-			//for first element, add each entry manually since array is empty and without structure
-
-			if( i == 0) {
-				newArr = [{ id: i, text: results[i].itemName, fat: results[i].fat, sugar: results[i].sugar,
-							carbs:results[i].carbs, protein: results[i].protein, totCal: results[i].calories, date: results[i].dateAdded.substring(0,10)}];
-			} else {
-				//afterwards, add on to existing array
-				newArr = [...newArr ,
-					{ id: i, text: results[i].itemName, fat: results[i].fat, sugar: results[i].sugar,
-						carbs:results[i].carbs, protein: results[i].protein, totCal: results[i].calories, date: results[i].dateAdded.substring(0,10)}];
-			}			
-		}	 
-		await setExampleState(newArr);
-		await changeEl(newArr);
-	}
-
-	useFocusEffect(
-		React.useCallback( () => {
-		  // Do something when the screen is focused
-
-		console.log("1 " + userID);
-		// Storage.load(setUserID, setName, setIsLog);
-		// Storage.setSignOut();
- 
-		console.log("2 " + userID);
-			
-		  let results = testing();
-			console.log("results = " + results);
-
-			if(loading == true)
-				setLoad(false);
-			else
-				setLoad(true);
-
-		  return () => {
-
-
-			// Do something when the screen is unfocused
-			// Useful for cleanup functions as
-		  };
-		}, [])
-	  );
-
-	  const testing = async () => {		
-	   var arr = [];
-	   
-	   const response = await axios.get("http://52.53.203.248/ProperApi/api/NutEntries/25", {})
-		   .then(
-			   response => {
-				   const nameList = response.data;					
-				   setLoad(true);
-				   var i = 0;
-				   for(i = 0; i < response.data.length; i++){
-					   arr.push(nameList[i]);
-				   }				   
-			   });
-			   
-			   await addElement(arr);
-
-			   if(loading == true)
-				setLoad(false);
-			   else
-				setLoad(true);
-
-			   return arr;
-   };
-	
-	return (		
-		<SafeAreaView style={Nutstyles.container}>			
-				
-			
+		<SafeAreaView>
 			<View style={text.NutTitle}>
 				<Text style={text.NutFoodTitleText}>Foods</Text>	
 			</View>		
@@ -144,8 +72,8 @@ function NutJournal({navigation}) {
 					navigation.navigate("todayNut");
 				}} />					
 		</SafeAreaView>				
-	);
-}
+	// );
+}}
 
 export {NutJournal};
 
