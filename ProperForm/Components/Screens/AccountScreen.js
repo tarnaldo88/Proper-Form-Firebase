@@ -1,327 +1,271 @@
-import React, {useState} from "react";
-import axios from "axios";
+import React, {useState, useEffect} from "react";
 import {
     View,
-    Image,
     StyleSheet,
     Text,
     TouchableOpacity,
     SafeAreaView,
-    ScrollView
+    ScrollView,
+    ActivityIndicator,
+    Alert
 } from "react-native";
-import {logstyle, views, styleDrawContent} from "./Styles";
-import {Title, Caption, Paragraph} from "react-native-paper";
+import {Title} from "react-native-paper";
 import {useFocusEffect} from "@react-navigation/native";
 import Slider from "@react-native-community/slider";
-
+import { getAuth } from "firebase/auth";
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import app from "../firebase";
 
 function AccountScreen({navigation}) {
-    const [sex, setSex] = useState();
-    const [metric_imperial, setMetric_imperial] = useState();
-    const [weight, setWeight] = useState(30);
-    const [goalWeight, setGoalWeight] = useState(100);
-    const [height, setHeight] = useState(90);
-    const [date, setDate] = useState(new Date());
-    const [mode, setMode] = useState("date");
-    const [show, setShow] = useState(false);
-    const [currentdate, setCurrentDate] = useState();
-    const [loading, setLoad] = useState(false);
+    const [sex, setSex] = useState("");
+    const [weight, setWeight] = useState(150);
+    const [goalWeight, setGoalWeight] = useState(150);
+    const [height, setHeight] = useState(70);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    
+    const auth = getAuth();
+    const db = getFirestore();
 
-    const [name, setName] = useState();
-    const [isLog, setIsLog] = useState();
-    const [userID, setUserID] = useState();
-
-    const [selectedItems, setSelected] = useState([
-        {
-            id: 0,
-            userID: 0,
-            userName: "",
-            email: "",
-            firstName: "",
-            lastName: "",
-            gender: "",
-            weight: 0,
-            goalWeight: 0,
-            height: 0
-        }
-    ]);
-
-    const storeProfile = async (results) => {
-        var newArr = [];
-        var i = 0;
-		console.log("length TEST:::::::: "+results.length)
-		setGoalWeight(results[0].goalWeight)
-        //loop to go through all entries and add them to array
-        for (i = 0; i < results.length; i++) {
-            //for first element, add each entry manually since array is empty and without structure
-			console.log("GOALWEIGHT TEST:::::::: " + results[0].goalWeight);
-            if (i == 0) {
-                newArr = [
-                    {
-                        id: i,
-                        userID: results[i].userID,
-                        userName: results[i].username,
-                        email: results[i].email,
-                        firstName: results[i].firstName,
-                        lastName: results[i].lastName,
-                        gender: results.gender,
-                        weight: results[i].weight,
-                        goalWeight: results[i].goalWeight,
-                        height: results[i].height
-                    }
-                ];
-            } else {
-                //afterwards, add on to existing array
-                newArr = [
-                    ...newArr,
-                    {
-                        id: i,
-                        userID: results[i].userID,
-                        userName: results[i].username,
-                        email: results[i].email,
-                        firstName: results[i].firstName,
-                        lastName: results[i].lastName,
-                        gender: results.gender,
-                        weight: results[i].weight,
-                        goalWeight: results[i].goalWeight,
-                        height: results[i].height
-                    }
-                ];
+    // Load user profile data
+    const loadProfile = async () => {
+        try {
+            const user = auth.currentUser;
+            if (!user) {
+                console.log("No user logged in");
+                navigation.navigate("Login");
+                return;
             }
+
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            if (userDoc.exists()) {
+                const data = userDoc.data();
+                setSex(data.gender || "");
+                setWeight(data.weight || 150);
+                setGoalWeight(data.goalWeight || 150);
+                setHeight(data.height || 70);
+            }
+        } catch (error) {
+            console.error("Error loading profile:", error);
+            Alert.alert("Error", "Failed to load profile. Please try again.");
+        } finally {
+            setLoading(false);
         }
-        setSelected(newArr);
-		// console.log(selectedItems);
     };
 
-	useFocusEffect(
+    // Save profile to Firestore
+    const saveProfile = async () => {
+        try {
+            setSaving(true);
+            const user = auth.currentUser;
+            if (!user) {
+                navigation.navigate("Login");
+                return;
+            }
+
+            await setDoc(doc(db, "users", user.uid), {
+                gender: sex,
+                weight: weight,
+                goalWeight: goalWeight,
+                height: height,
+                updatedAt: serverTimestamp()
+            }, { merge: true });
+            
+            Alert.alert("Success", "Profile updated successfully!");
+        } catch (error) {
+            console.error("Error saving profile:", error);
+            Alert.alert("Error", "Failed to save profile. Please try again.");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    // Load profile when screen comes into focus
+    useFocusEffect(
         React.useCallback(() => {
-            // Do something when the screen is focused
-            // Storage.load(setUserID, setName, setIsLog);
-            // Storage.setSignOut();
-
-            let results = loadProfile();
-            //console.log("exampleState = " + route.params.exampleState[0].fat);
-
-            // if (loading == true) 
-			// 	setLoad(false);
-            // else
-			// 	setLoad(true);
-            return () => {
-                // Do something when the screen is unfocused
-                // Useful for cleanup functions as
-            };
+            loadProfile();
         }, [])
     );
 
-    /*PostSignup takes the current state information and posts it to the api*/
-
-    const PostSignup = async () => {
-        // const registerData = await Storage.getRegisterData();
-        // const detailsData = await Storage.getDetailsData();
-
-        await axios
-            .post("http://52.53.203.248/ProperApi/api/UserInfo", {
-                username: registerData.username,
-                password: registerData.password,
-                email: registerData.email,
-                verified: Boolean(registerData.verified),
-                firstName: registerData.firstname,
-                lastName: registerData.lastname,
-                gender: detailsData.sex,
-                weight: Number(detailsData.weight),
-                goalWeight: Number(detailsData.goalWeight),
-                height: Number(detailsData.height),
-                birthday: detailsData.birthday,
-                token: registerData.token
-            })
-
-            .then(
-                response => {
-                    // console.log(response);
-                },
-                error => {
-                    // console.log(error);
-                }
-            );
-    };
-
-    const loadProfile = async () => {
-        var arr = [];
-        const response = await axios
-            .get("http://52.53.203.248/ProperApi/api/UserInfo/25", {})
-            .then(response => {
-				arr[0] = response.data;
-                setLoad(true);
-				// setHeight(nameList[i].height);
-				// setWeight(nameList[i].weight);
-				// setGoalWeight(nameList[i].goalWeight);
-            });
-			console.log("Test")
-        await storeProfile(arr);
-		console.log("Test2")
-        if (loading == true) setLoad(false);
-        else setLoad(true);
-
-        return arr;
-    };
-
-    const roundToNearest = (num, rounding) => {
-        // If rounding is 10, number rounds to nearest 10
-        let number = num;
-        number /= rounding;
-        number = Math.round(number);
-        number *= rounding;
-        return number;
-    };
-
-    const cmToFt = num => {
-        const ft = (num * 0.393700787) / 12;
-        const roundFt = Math.floor(ft);
-        const inches = Math.round((ft - roundFt) * 12);
-        return inches == 12
-            ? `${roundFt + 1}ft 0in`
-            : `${roundFt}ft ${inches}in`;
-    };
-
-    const submitPressed = async () => {
-        // Storage.initDetailsData();
-        // Storage.setDetailsData(
-        //     height,
-        //     weight,
-        //     goalWeight,
-        //     sex,
-        //     String(date).slice(4, 15)
-        // );
-        await PostSignup();
-        // const detailsData = await Storage.getDetailsData();
-        // console.log("Details Height: " + detailsData.height);
-        // console.log("Details Weight: " + detailsData.weight);
-        // console.log("Details Sex: " + detailsData.sex);
-        // console.log("Details Birthday: " + detailsData.birthday);
-        // Storage.clearRegisterDetails();
-    };
+    if (loading) {
+        return (
+            <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#1f65ff" />
+            </View>
+        );
+    }
 
     return (
-        <SafeAreaView style={views.Home}>
-            <ScrollView>
-                <View /* Section with user information*/style={{marginTop:55}}>
-                    <View style={styleDrawContent.section}>
-                        <Paragraph
-                            style={[
-                                styleDrawContent.paragraph,
-                                styleDrawContent.caption
-                            ]}
-                        >
-                            Workout Streak:
-                        </Paragraph>
-                        <Caption style={styleDrawContent.caption}>
-                            8 Days In A Row!
-                        </Caption>
+        <SafeAreaView style={styles.container}>
+            <ScrollView contentContainerStyle={styles.scrollContainer}>
+                <View style={styles.userInfoSection}>
+                    <Title style={styles.title}>Profile Settings</Title>
+                    
+                    <View style={styles.settingRow}>
+                        <Text style={styles.label}>Gender:</Text>
+                        <View style={styles.genderContainer}>
+                            {["Male", "Female", "Other"].map((gender) => (
+                                <TouchableOpacity
+                                    key={gender}
+                                    style={[
+                                        styles.genderButton,
+                                        sex === gender && styles.genderButtonSelected
+                                    ]}
+                                    onPress={() => setSex(gender)}
+                                >
+                                    <Text style={[
+                                        styles.genderText,
+                                        sex === gender && styles.genderTextSelected
+                                    ]}>
+                                        {gender}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
                     </View>
-                    <View style={styleDrawContent.section}>
-                        <Paragraph
-                            style={[
-                                styleDrawContent.paragraph,
-                                styleDrawContent.caption
-                            ]}
-                        >
-                            Diet Goal:
-                        </Paragraph>
-                        <Caption style={styleDrawContent.caption}>
-                            {roundToNearest(selectedItems[0].weight * 2.20462, 1) - selectedItems[0].goalWeight} lbs Left To Go
-                        </Caption>
-                    </View>
-                </View>
 
-                <View style={logstyle.container}>
-                    <Text style={styles.text}>
-                        Height: {selectedItems[0].height}cm | {cmToFt(selectedItems[0].height)}
-                    </Text>
-{/* 
-                    <Slider
-                        style={styles.slider}
-                        minimumValue={90}
-                        maximumValue={275}
-                        step={1}
-                        onValueChange={value => setHeight(value)}
-                    /> */}
-
-                    <Text style={styles.text}>
-                        {" "}
-                        Weight: {selectedItems[0].weight}kg |{" "}
-                        {roundToNearest(selectedItems[0].weight * 2.20462, 1)}lbs
-                    </Text>
-                    {/* <Slider
-                        style={styles.slider}
-                        minimumValue={30}
-                        maximumValue={363}
-                        step={1}
-                        onValueChange={value => setWeight(value)}
-                    /> */}
-
-                    <Text style={styles.text}>
-                        {" "}
-                        GoalWeight: {roundToNearest(goalWeight / 2.20462, 1)}kg |{" "}
-                        {goalWeight}lbs
-                    </Text>
-                    <Slider
-                        style={styles.slider}
-                        minimumValue={30}
-                        maximumValue={363}
-						value={selectedItems[0].goalWeight}
-                        step={1}
-                        onValueChange={value => setGoalWeight(value)}
-                    />
-					<View style={{marginTop:25}}><Text></Text></View>
-                    <TouchableOpacity
-                        onPress={() => {
-                            submitPressed();
-                            navigation.navigate("mainHome");
-                        }}
-                    >
-                        <Image
-                            source={require("./../../img/submit.png")}
-                            style={logstyle.submitButton}
+                    <View style={styles.settingRow}>
+                        <Text style={styles.label}>Weight: {weight} lbs</Text>
+                        <Slider
+                            style={styles.slider}
+                            minimumValue={80}
+                            maximumValue={400}
+                            step={1}
+                            value={weight}
+                            onValueChange={value => setWeight(Math.round(value))}
+                            minimumTrackTintColor="#1f65ff"
+                            maximumTrackTintColor="#d3d3d3"
                         />
-                    </TouchableOpacity>
+                    </View>
+
+                    <View style={styles.settingRow}>
+                        <Text style={styles.label}>Goal Weight: {goalWeight} lbs</Text>
+                        <Slider
+                            style={styles.slider}
+                            minimumValue={80}
+                            maximumValue={400}
+                            step={1}
+                            value={goalWeight}
+                            onValueChange={value => setGoalWeight(Math.round(value))}
+                            minimumTrackTintColor="#1f65ff"
+                            maximumTrackTintColor="#d3d3d3"
+                        />
+                    </View>
+
+                    <View style={styles.settingRow}>
+                        <Text style={styles.label}>Height: {Math.floor(height/12)}' {Math.round(height%12)}"</Text>
+                        <Slider
+                            style={styles.slider}
+                            minimumValue={48}
+                            maximumValue={96}
+                            step={0.5}
+                            value={height}
+                            onValueChange={value => setHeight(value)}
+                            minimumTrackTintColor="#1f65ff"
+                            maximumTrackTintColor="#d3d3d3"
+                        />
+                    </View>
                 </View>
+
+                <TouchableOpacity 
+                    style={[styles.saveButton, saving && styles.saveButtonDisabled]} 
+                    onPress={saveProfile}
+                    disabled={saving}
+                >
+                    {saving ? (
+                        <ActivityIndicator color="#fff" />
+                    ) : (
+                        <Text style={styles.saveButtonText}>Save Changes</Text>
+                    )}
+                </TouchableOpacity>
             </ScrollView>
         </SafeAreaView>
     );
 }
-export {AccountScreen};
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1
-        // backgroundColor: "#f5fcff"
+        flex: 1,
+        backgroundColor: '#fff',
     },
-    input: {
-        height: 80,
-        textAlign: "center",
-        width: "50%",
-        fontSize: 50,
-        marginTop: 24,
-        color: "#10156F"
+    scrollContainer: {
+        flexGrow: 1,
+        paddingBottom: 20,
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+    },
+    userInfoSection: {
+        padding: 20,
+    },
+    title: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        marginBottom: 20,
+        color: '#1a1a1a',
+    },
+    settingRow: {
+        marginBottom: 25,
+        backgroundColor: '#f8f9fa',
+        padding: 15,
+        borderRadius: 10,
+        elevation: 2,
+    },
+    label: {
+        fontSize: 16,
+        fontWeight: '600',
+        marginBottom: 10,
+        color: '#333',
     },
     slider: {
-        width: 300,
-        opacity: 1,
-        height: 50,
-        marginTop: 50
+        width: '100%',
+        height: 40,
     },
-    text: {
+    genderContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 5,
+    },
+    genderButton: {
+        flex: 1,
+        marginHorizontal: 5,
+        padding: 12,
+        borderRadius: 8,
+        backgroundColor: '#f0f0f0',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    genderButtonSelected: {
+        backgroundColor: '#1f65ff',
+    },
+    genderText: {
+        color: '#555',
+        fontWeight: '500',
         fontSize: 14,
-        textAlign: "center",
-        fontWeight: "500",
-        margin: 10
     },
-    sexBtn: {
-        padding: 45,
-        color: "#f194ff"
+    genderTextSelected: {
+        color: '#fff',
     },
-    space: {
-        width: 20, // or whatever size you need
-        height: 20
-    }
+    saveButton: {
+        backgroundColor: '#1f65ff',
+        padding: 15,
+        borderRadius: 10,
+        margin: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: 50,
+    },
+    saveButtonDisabled: {
+        backgroundColor: '#a0c0ff',
+    },
+    saveButtonText: {
+        color: 'white',
+        fontWeight: 'bold',
+        fontSize: 16,
+    },
 });
+
+export { AccountScreen };
