@@ -1,3 +1,6 @@
 node_modules
 google-services.json
 GoogleService-Info.plist
+
+/Screens/FriendChatA.js
+/Screens/FriendChatB.js
