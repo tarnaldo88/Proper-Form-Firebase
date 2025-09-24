@@ -31,7 +31,8 @@ import {FriendChatA} from "./FriendChatA";
 import {postSteps} from "./postSteps";
 import {rankings} from "./rankings";
 import {MyRoutines} from "./MyRoutines";
-import {TodayNut} from "./TodayNut";
+// import {TodayNut} from "./TodayNut";
+import TodayNut from "./TodayNut";
 import {DisplayMyRoutines} from "./DisplayMyRoutines";
 
 const HomeStack = createStackNavigator();
