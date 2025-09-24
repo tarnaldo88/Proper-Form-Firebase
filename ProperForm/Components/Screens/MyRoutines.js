@@ -1,8 +1,10 @@
 import React, {useState} from "react";
 import {View, Image, Button, FlatList, Text, TouchableOpacity, SafeAreaView, ScrollView} from "react-native";
 import {views, text, button, image} from "./Styles";
-import axios from "axios";
 import {useFocusEffect} from "@react-navigation/native";
+import app from "../firebase";
+import { getAuth } from "firebase/auth";
+import { getFirestore, collection, getDocs, query, orderBy } from "firebase/firestore";
 
 //function to setup the WorkoutHome screen
 function MyRoutines({navigation}) {	
@@ -13,10 +15,8 @@ function MyRoutines({navigation}) {
 	useFocusEffect(
 		React.useCallback(() => {
 		  // Do something when the screen is focused
-		//   Storage.load(setUserID, setName, setIsLog);
-		//   Storage.setSignOut();
 
-		  let results = getRoutineNames();
+		  getRoutineNames();
 		  // console.log("results = " + results);
 
 		  if(loading == true)
@@ -51,34 +51,32 @@ function MyRoutines({navigation}) {
 	};	
 	
 	const getRoutineNames = async () => {
-		//function to get the names of the routines
-		var arr = [];
-		
-		await axios
-			.get(
-				"http://52.53.203.248/ProperApi/api/UserRoutines/All/25",
-				{}
-			)
-			.then(response => {
-				//cosole.log(response.data);
-				setLoad(true);
-				for(let i = 0; i < response.data.length; i++){
-					if(!arr.includes(response.data[i].rtName)){
-						//console.log(response.data[i].rtName);
-						arr.push(response.data[i].rtName);					
-					}
-				}
-				// console.log(arr);
-		});		
-		await waitForRoutine(arr);
-
-		if(loading == true)
-		 setLoad(false);
-		else
-		 setLoad(true);
-	
-		return arr;
-	};	
+		// Fetch routine names from Firestore users/{uid}/routines
+		try {
+			const auth = getAuth(app);
+			const uid = auth.currentUser?.uid;
+			if (!uid) {
+				setRout([]);
+				return [];
+			}
+			const db = getFirestore(app);
+			const routinesRef = collection(db, "users", uid, "routines");
+			const snap = await getDocs(routinesRef);
+			const namesSet = new Set();
+			snap.forEach(doc => {
+				const data = doc.data();
+				if (data?.name) namesSet.add(data.name);
+			});
+			const arr = Array.from(namesSet);
+			await waitForRoutine(arr);
+			setLoad(l => !l);
+			return arr;
+		} catch (e) {
+			console.log('Firestore read error (MyRoutines):', e);
+			setRout([]);
+			return [];
+		}
+	}; 
 	
 	return (
 		<SafeAreaView style={{backgroundColor:"#363534"}}>

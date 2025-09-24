@@ -2,8 +2,10 @@ import React, {useState} from "react";
 import {StyleSheet, View, Image, Text, TouchableOpacity, SafeAreaView, ScrollView} from "react-native";
 import {views, text, button, image} from "./Styles";
 import {DisplayExButton} from "./../Display/DisplayExButtons";
-import axios from "axios";
 import {useFocusEffect} from "@react-navigation/native";
+import app from "../firebase";
+import { getAuth } from "firebase/auth";
+import { getFirestore, collection, getDocs, query, where, orderBy, limit } from "firebase/firestore";
 
 //function to setup the WorkoutHome screen
 function DisplayMyRoutines({navigation, route}) {
@@ -37,25 +39,34 @@ function DisplayMyRoutines({navigation, route}) {
 
     // console.log(" routname: " + name);
 
-	//function to get the workouts under the given route name
-	const getRoutine = async () => {
-        var arr = [];
-		//setLoading(true);
-		await axios
-			.get(
-				"http://52.53.203.248/ProperApi/api/UserRoutines/"+ userID + "/" + route.params.routName,
-				{},				
-			)
-			.then(response => {
-				for(let i = 0; i < response.data.length; i++){
-					if(!arr.includes(response.data[i].rtNumber)){
-						arr.push(response.data[i].rtNumber);				
-					}
-				}
-				console.log(arr);
-			});
-		return arr;
-	};
+	// Fetch the routine document(s) for this user and name, then set exercises
+    const getRoutine = async () => {
+        try {
+            const auth = getAuth(app);
+            const uid = auth.currentUser?.uid;
+            if (!uid) return [];
+            const db = getFirestore(app);
+            const routinesRef = collection(db, "users", uid, "routines");
+            const q = query(routinesRef, where("name", "==", route.params.routName));
+            const snap = await getDocs(q);
+            // choose the most recent by timestamp if multiple
+            let chosen = null;
+            snap.forEach(doc => {
+                const data = doc.data();
+                if (!chosen) chosen = data; // first
+                else {
+                    const a = chosen?.timestamp?.toMillis?.() || 0;
+                    const b = data?.timestamp?.toMillis?.() || 0;
+                    if (b > a) chosen = data;
+                }
+            });
+            const arr = Array.isArray(chosen?.exercises) ? chosen.exercises : [];
+            return arr;
+        } catch (e) {
+            console.log('Firestore read error (DisplayMyRoutines):', e);
+            return [];
+        }
+    };
 
 	const waitForRoutine = async() =>{
         num = await getRoutine();
