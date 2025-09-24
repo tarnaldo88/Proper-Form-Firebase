@@ -167,21 +167,21 @@ function CreateNutrition({navigation, route}) {
 	      return;
 	    }
 
-	    // Add your Firestore logic here
+	    // Persist nutrition entry under the authenticated user's subcollection
 	    const foodData = {
 	      name: food,
-	      calories: cal,
-	      protein: prot,
-	      carbs: carbs,
-	      sugar: sugar,
-	      fat: fat,
-	      date: date || new Date().toISOString(),
-	      userId: user.uid,
-	      createdAt: serverTimestamp()
+	      calories: cal || 0,
+	      protein: prot || 0,
+	      carbs: carbs || 0,
+	      sugar: sugar || 0,
+	      fat: fat || 0,
+	      date: serverTimestamp(),
+	      userId: user.uid
 	    };
 
-	    const docRef = await addDoc(collection(db, 'nutrition'), foodData);
-	    console.log('Document written with ID: ', docRef.id);
+	    const colRef = collection(db, 'users', user.uid, 'foodEntries');
+	    const docRef = await addDoc(colRef, foodData);
+	    console.log('Food entry written with ID: ', docRef.id);
 	    
 	    Alert.alert('Success', 'Food entry added successfully');
 	    navigation.navigate("nutJournal");

@@ -1,82 +1,97 @@
-import React, { useState, useEffect } from "react";
-import { SafeAreaView, Button, FlatList, StyleSheet, View, Image, Text, TouchableOpacity, StatusBar, Alert} from "react-native";
-import {views, text, button, image, Nutstyles} from "./Styles";
-import {useFocusEffect} from "@react-navigation/native";
+import React, { useState } from "react";
+import { SafeAreaView, Button, FlatList, View, Text, Alert } from "react-native";
+import { text as textStyles } from "./Styles";
+import { useFocusEffect } from "@react-navigation/native";
 import app from "../firebase";
 import { getAuth } from "firebase/auth";
 import { getFirestore, collection, getDocs, query, orderBy } from "firebase/firestore";
 
-import {Collapse,CollapseHeader, CollapseBody} from 'accordion-collapse-react-native';
-import {Dimensions} from "react-native";
 
-function NutJournal({navigation}) {
-	const [name, setName] = useState();
-	const [isLog, setIsLog] = useState();
-	const [userID, setUserID] = useState();
+function NutJournal({ navigation }) {
+  const [entries, setEntries] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-	const [initialElements, changeEl]  = useState([
-		{id: 0,text : "Vegetable Smoothie", fat: "10", sugar: "20", carbs: "20", protein: "15", totCal: "230", date: "6/8/2021"},		
-	  ]);	
-	const [exampleState, setExampleState] = useState(initialElements);
-	const [loading, setLoad] = useState(false);
-	
-	const addElement = async (results) => {
-		var newArr = [];
-		var i = 0;
-		<SafeAreaView>
-			<View style={text.NutTitle}>
-				<Text style={text.NutFoodTitleText}>Foods</Text>	
-			</View>		
+  const loadFoods = async () => {
+    try {
+      setLoading(true);
+      const auth = getAuth(app);
+      const uid = auth.currentUser?.uid;
+      if (!uid) {
+        Alert.alert("Error", "User not authenticated");
+        setEntries([]);
+        setLoading(false);
+        return;
+      }
+      const db = getFirestore(app);
+      const foodsRef = collection(db, "users", uid, "foodEntries");
+      const q = query(foodsRef, orderBy("date", "desc"));
+      const snap = await getDocs(q);
+      const arr = [];
+      snap.forEach((d) => {
+        const data = d.data();
+        arr.push({
+          id: d.id,
+          name: data.name || "",
+          fat: data.fat || 0,
+          sugar: data.sugar || 0,
+          carbs: data.carbs || 0,
+          protein: data.protein || 0,
+          totCal: data.calories || 0,
+          date: data.date?.toDate ? data.date.toDate().toISOString().substring(0, 10) : "",
+        });
+      });
+      setEntries(arr);
+    } catch (e) {
+      console.log("NutJournal loadFoods Firestore error:", e);
+      Alert.alert("Error", "Unable to load nutrition entries");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-			<FlatList				
-				onPress={() => {
-					console.log(data.calories);
-				}}
-				keyExtractor = {item => item.id.toString()}  
-				extraData = {loading}
-				data={exampleState}
-				renderItem = {item => ( 
-				<View style={{flexDirection:"row", padding:10, paddingLeft:0, backgroundColor:"#363534"}}>
-						<Collapse>
-							<CollapseHeader>
-							<View style={{ width: Dimensions.get('window').width, 
-											marginLeft: 0, marginRight: 0,
-											borderWidth: 1, borderColor: "#000000"}}>								
-								<Text style={text.item}>{item.item.text}</Text>
-							</View>
-							</CollapseHeader>
-							<CollapseBody>
-								<Text style={text.NutTitleText}>Calories:		{item.item.totCal}</Text>
-								<Text style={text.NutTitleText}>Fats:		{item.item.fat}</Text>
-								<Text style={text.NutTitleText}>Sugars:		{item.item.sugar}</Text>		
-								<Text style={text.NutTitleText}>Carbs:		{item.item.carbs}</Text>	
-								<Text style={text.NutTitleText}>Protein:		{item.item.protein}</Text>	
-								<Text style={text.NutTitleText}>Date Added:		{item.item.date}</Text>
-							</CollapseBody>
-						</Collapse>
-					</View>
-				)} 
-			/> 	
-			<Button
-				title="+ Add Food Entry"
-				onPress={() => {
-					
-					navigation.navigate("createDiet");
-				}} 
-			/>
-			<View style={{padding: 5}}></View>
-			<Button
-				color="#2116f5"
-				title ="Show Today's Entries"
-				onPress={() => {					
-					navigation.navigate("todayNut");
-				}} />					
-		</SafeAreaView>				
-	// );
-}}
+  useFocusEffect(
+    React.useCallback(() => {
+      loadFoods();
+    }, [])
+  );
 
-export {NutJournal};
+  const renderItem = ({ item }) => (
+    <View style={{ padding: 12, borderBottomWidth: 1, borderColor: "#333" }}>
+      <Text style={textStyles.item}>{item.name}</Text>
+      <Text style={textStyles.NutTitleText}>Calories: {item.totCal}</Text>
+      <Text style={textStyles.NutTitleText}>Protein: {item.protein}</Text>
+      <Text style={textStyles.NutTitleText}>Carbs: {item.carbs}</Text>
+      <Text style={textStyles.NutTitleText}>Sugar: {item.sugar}</Text>
+      <Text style={textStyles.NutTitleText}>Fat: {item.fat}</Text>
+      <Text style={textStyles.NutTitleText}>Date: {item.date}</Text>
+    </View>
+  );
 
-const window = Dimensions.get("window");
+  return (
+    <SafeAreaView>
+      <View style={{ paddingHorizontal: 12, paddingTop: 8 }}>
+        <Text style={textStyles.NutFoodTitleText}>Foods</Text>
+      </View>
+      <FlatList
+        data={entries}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        refreshing={loading}
+        onRefresh={loadFoods}
+        ListEmptyComponent={!loading ? (
+          <View style={{ padding: 16 }}>
+            <Text style={textStyles.NutTitleText}>No entries yet.</Text>
+          </View>
+        ) : null}
+      />
+      <View style={{ padding: 12 }}>
+        <Button title="+ Add Food Entry" onPress={() => navigation.navigate("createDiet")} />
+      </View>
+      <View style={{ paddingHorizontal: 12, paddingBottom: 12 }}>
+        <Button color="#2116f5" title="Show Today's Entries" onPress={() => navigation.navigate("todayNut")} />
+      </View>
+    </SafeAreaView>
+  );
+}
 
-  
+export { NutJournal };
