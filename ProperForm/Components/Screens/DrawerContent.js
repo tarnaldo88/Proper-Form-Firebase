@@ -19,7 +19,7 @@ import { getAuth } from "firebase/auth";
 import { getFirestore, collection, query, orderBy, onSnapshot, limit } from "firebase/firestore";
 import app from "../firebase";
 import { parseISO, isSameDay, addDays } from 'date-fns';
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 
 //style={styles.row} can also be used for the View style holding the double paragraph caption section
 
@@ -33,6 +33,8 @@ function DrawerContent({props, navigation}) {
 	const [userID, setUserID] = useState();
 	const [currentStreak, setCurrentStreak] = useState(0);
 	const [weightDiff, setWeightDiff] = useState(0);
+	const [weight, setWeight] = useState(150);
+	const [goalWeight, setGoalWeight] = useState(150);
 	const db = getFirestore(app);
 
 	// Function to check and update streak
@@ -105,33 +107,19 @@ function DrawerContent({props, navigation}) {
         // Function to update weight difference
         const updateWeightDifference = async () => {
             try {
-                const userDoc = await getDoc(doc(db, "users", user.uid));
-                if (!userDoc.exists()) return;
-                
-                const userData = userDoc.data();
-                const goalWeight = userData.goalWeight;
-                
-                if (!goalWeight) {
-                    if (isMounted) setWeightDiff(0);
-                    return;
-                }
-                
-                // Get the most recent weight from weightHistory
-                const weightHistoryRef = collection(db, "users", user.uid, "weightHistory");
-                const weightQuery = query(weightHistoryRef, orderBy("timestamp", "desc"), limit(1));
-                const weightSnapshot = await getDocs(weightQuery);
-                
-                if (weightSnapshot.empty) {
-                    if (isMounted) setWeightDiff(goalWeight);
-                    return;
-                }
-                
-                const currentWeight = weightSnapshot.docs[0].data().weight;
-                const difference = Math.round((goalWeight - currentWeight) * 10) / 10; // Round to 1 decimal place
-                
-                if (isMounted) {
-                    setWeightDiff(difference);
-                }
+                const user = auth.currentUser;
+				if (!user) {
+					console.log("No user logged in");
+					navigation.navigate("Login");
+					return;
+				}
+	
+				const userDoc = await getDoc(doc(db, "users", user.uid));
+				if (userDoc.exists()) {
+					const data = userDoc.data();								
+					setWeight(data.weight || 150);
+					setGoalWeight(data.goalWeight || 150);								
+				}
             } catch (error) {
                 console.error("Error updating weight difference:", error);
             }
@@ -142,7 +130,7 @@ function DrawerContent({props, navigation}) {
         const unsubscribeUser = onSnapshot(userRef, updateWeightDifference);
 
         // Initial fetch
-        updateWeightDifference();
+        // updateWeightDifference();
 
         // Clean up subscriptions
         return () => {
@@ -150,8 +138,7 @@ function DrawerContent({props, navigation}) {
             unsubscribeWorkouts();
             unsubscribeUser();
         };
-    	}, []);
-		
+    	}, []);		
 
 	const paperTheme = useTheme();
 
