@@ -19,6 +19,7 @@ import { getAuth } from "firebase/auth";
 import { getFirestore, collection, query, orderBy, onSnapshot, limit } from "firebase/firestore";
 import app from "../firebase";
 import { parseISO, isSameDay, addDays } from 'date-fns';
+import { doc, getDoc } from "firebase/firestore";
 
 //style={styles.row} can also be used for the View style holding the double paragraph caption section
 
@@ -31,6 +32,7 @@ function DrawerContent({props, navigation}) {
 	const [isSign, setIsSign] = useState();
 	const [userID, setUserID] = useState();
 	const [currentStreak, setCurrentStreak] = useState(0);
+	const [weightDiff, setWeightDiff] = useState(0);
 	const db = getFirestore(app);
 
 	// Function to check and update streak
@@ -77,280 +79,177 @@ function DrawerContent({props, navigation}) {
         setCurrentStreak(streak);
     };
 
-    // Load workout days when component mounts or user changes
+    // Load user data including workout days and weight information
     useEffect(() => {
+        let isMounted = true;
         const auth = getAuth(app);
         const user = auth.currentUser;
         
         if (!user) {
             setCurrentStreak(0);
+            setWeightDiff(0);
             return;
         }
 
+        // Subscribe to workout days for streak calculation
         const workoutRef = collection(db, "users", user.uid, "workoutDays");
-        const q = query(workoutRef, orderBy("date", "desc"));
+        const workoutQuery = query(workoutRef, orderBy("date", "desc"));
         
-        const unsubscribe = onSnapshot(q, (querySnapshot) => {
-            const dates = querySnapshot.docs.map(doc => doc.data().date);
-            checkAndUpdateStreak(dates);
+        const unsubscribeWorkouts = onSnapshot(workoutQuery, (querySnapshot) => {
+            if (isMounted) {
+                const dates = querySnapshot.docs.map(doc => doc.data().date);
+                checkAndUpdateStreak(dates);
+            }
         });
 
-        return () => unsubscribe();
-    }, []);
+        // Function to update weight difference
+        const updateWeightDifference = async () => {
+            try {
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (!userDoc.exists()) return;
+                
+                const userData = userDoc.data();
+                const goalWeight = userData.goalWeight;
+                
+                if (!goalWeight) {
+                    if (isMounted) setWeightDiff(0);
+                    return;
+                }
+                
+                // Get the most recent weight from weightHistory
+                const weightHistoryRef = collection(db, "users", user.uid, "weightHistory");
+                const weightQuery = query(weightHistoryRef, orderBy("timestamp", "desc"), limit(1));
+                const weightSnapshot = await getDocs(weightQuery);
+                
+                if (weightSnapshot.empty) {
+                    if (isMounted) setWeightDiff(goalWeight);
+                    return;
+                }
+                
+                const currentWeight = weightSnapshot.docs[0].data().weight;
+                const difference = Math.round((goalWeight - currentWeight) * 10) / 10; // Round to 1 decimal place
+                
+                if (isMounted) {
+                    setWeightDiff(difference);
+                }
+            } catch (error) {
+                console.error("Error updating weight difference:", error);
+            }
+        };
+
+        // Subscribe to user document for weight data
+        const userRef = doc(db, "users", user.uid);
+        const unsubscribeUser = onSnapshot(userRef, updateWeightDifference);
+
+        // Initial fetch
+        updateWeightDifference();
+
+        // Clean up subscriptions
+        return () => {
+            isMounted = false;
+            unsubscribeWorkouts();
+            unsubscribeUser();
+        };
+    	}, []);
+		
 
 	const paperTheme = useTheme();
 
 	const toggleTheme = () => {
-		//sets dark theme to the opposite of whatever it is currently
 		setIsDarkTheme(!isDarkTheme);
 	};
 
 	return (
 		<View style={{flex: 1}}>
-			                {isLog ? (
-                    <>
-			<DrawerContentScrollView {...props}>
-				<View style={styleDrawContent.drawerContent}>
-					<View
-						style={
-							styleDrawContent.userInfoSection
-						} /*View section for the user information*/
-					>
-						<View style={{flexDirection: "row", marginTop: 15}}>
-							<Avatar.Image
-								source={require("./../../img/user.png")}
-								size={50}
-							/>
-							<View
-								style={{
-									marginLeft: 15,
-									flexDirection: "column"
-								}}
-							>
-								<Title style={styleDrawContent.title}>
-								{name}
-								</Title>
-								<Caption style={styleDrawContent.caption}>
-								</Caption>
-							</View>
-						</View>
-						<View>
-							<View style={styleDrawContent.section}>
-								<Paragraph
-									style={[
-										styleDrawContent.paragraph,
-										styleDrawContent.caption
-									]}
-								>
-									Workout Streak: {currentStreak}
-								</Paragraph>
-								<Caption style={styleDrawContent.caption}>
-								8 Days In A Row!
-								</Caption>
-							</View>
-							<View style={styleDrawContent.section}>
-								<Paragraph
-									style={[
-										styleDrawContent.paragraph,
-										styleDrawContent.caption
-									]}
-								>
-									Diet Goal:
-								</Paragraph>
-								<Caption style={styleDrawContent.caption}>
-								11 lbs Left To Go
-								</Caption>
-							</View>
-						</View>
-					</View>
-					<Drawer.Section
-						style={styleDrawContent.bottomDrawerSection}
-					>
-						<DrawerItem
-							icon={({color, size}) => (
-								<Icon name="home" color={color} size={size} />
-							)}
-							label="Home"
-							onPress={() => {
-								navigation.navigate("mainHome");
-							}} //set to home until proper pages are setup
-						/>
-						<DrawerItem
-							icon={({color, size}) => (
-								<Icon
-									name="account"
-									color={color}
-									size={size}
-								/>
-							)}
-							label="Account"
-							onPress={() => {
-								navigation.navigate("AccountHome");
-							}} //set to home until proper pages are setup
-						/>
-						<DrawerItem
-							icon={({color, size}) => (
-								<Icon
-									name="forum-outline"
-									color={color}
-									size={size}
-								/>
-							)}
-							label="Messages"
-							onPress={() => {
-								// navigation.navigate( 'Community', { screen: 'chatSelect' });
-								navigation.navigate(  'chatSelect' );
-							}}
-						/>
-						<DrawerItem
-							icon={({color, size}) => (
-								<Icon
-									name="format-list-numbered"
-									color={color}
-									size={size}
-								/>
-							)}
-							label="My Routines"
-							onPress={() => {
-								navigation.navigate("MyRoutines");
-							}}
-						/>
-						<DrawerItem
-							icon={({color, size}) => (
-								<Icon
-									name="food-variant"
-									color={color}
-									size={size}
-								/>
-							)}
-							label="My Progress"
-							onPress={() => {
-								navigation.navigate( 'MyNutrition' )}}
-						/>
-					</Drawer.Section>		
-					
-				</View>
-			</DrawerContentScrollView>
-			{isSign ? (
-                    <>
-			<Drawer.Section style={styleDrawContent.bottomDrawerSection}>
-				<DrawerItem
-					icon={({color, size}) => (
-						<Icon name="exit-to-app" color={color} size={size} />
-					)}
-					label="Sign Out"
-					onPress={() => {
-						navigation.navigate("mainHome"); //Storage.logout(setUserID, setName,setIsLog);
-					}} //set to nothing until we get the login/logout functions working
-				/>
-			</Drawer.Section>
-				</>
-				):(
-					<>
-					</>
-				)}
-			</>
-                ) : (
-                    <>
-								<DrawerContentScrollView {...props}>
-				<View style={styleDrawContent.drawerContent}>
-					<View
-						style={
-							styleDrawContent.userInfoSection
-						} /*View section for the user information*/
-					>
-						<View style={{flexDirection: "row", marginTop: 15}}>
-							<Avatar.Image
-								source={require("./../../img/user.png")}
-								size={50}
-							/>
-							<View
-								style={{
-									marginLeft: 15,
-									flexDirection: "column"
-								}}
-							>
-								<Title style={styleDrawContent.title}>
-								{name}
-								</Title>
-								<Caption style={styleDrawContent.caption}>
-								</Caption>
-							</View>
-						</View>
-						<View>
-							<View style={styleDrawContent.section}>
-								<Paragraph
-									style={[
-										styleDrawContent.paragraph,
-										styleDrawContent.caption
-									]}
-								>
-									Workout Streak: {currentStreak}
-								</Paragraph>
-								<Caption style={styleDrawContent.caption}>
-								8 Days In A Row!
-								</Caption>
-							</View>
-							<View style={styleDrawContent.section}>
-								<Paragraph
-									style={[
-										styleDrawContent.paragraph,
-										styleDrawContent.caption
-									]}
-								>
-									Diet Goal:
-								</Paragraph>
-								<Caption style={styleDrawContent.caption}>
-								11 lbs Left To Go
-								</Caption>
-							</View>
-						</View>
-					</View>
-					<Drawer.Section
-						style={styleDrawContent.bottomDrawerSection}
-					>
-						<DrawerItem
-							icon={({color, size}) => (
-								<Icon name="home" color={color} size={size} />
-							)}
-							label="Home"
-							onPress={() => {
-								navigation.navigate("mainHome");
-							}} //set to home until proper pages are setup
-						/>
-						<DrawerItem
-							icon={({color, size}) => (
-								<Icon
-									name="format-list-numbered"
-									color={color}
-									size={size}
-								/>
-							)}
-							label="My Routines"
-							onPress={() => {
-								navigation.navigate("MyRoutines");
-							}}
-						/>
-						<DrawerItem
-							icon={({color, size}) => (
-								<Icon
-									name="food-variant"
-									color={color}
-									size={size}
-								/>
-							)}
-							label="My Nutrition"
-							onPress={() => {
-								navigation.navigate("MyNutrition");
-							}}
-						/>
-					</Drawer.Section>
-				
-				</View>
-			</DrawerContentScrollView>
-					                    </>
-                )}
+		    {isLog ? (
+		        <DrawerContentScrollView {...props}>
+		            <View style={styleDrawContent.drawerContent}>
+		                <View style={styleDrawContent.userInfoSection}>
+		                   	<View style={{flexDirection: "row", marginTop: 15}}>
+		                        <Avatar.Image
+		                            source={require("./../../img/user.png")}
+		                            size={50}
+		                        />
+		                        <View style={{
+		                            marginLeft: 15,
+		                            flexDirection: "column"
+		                        }}>
+		                            <Title style={styleDrawContent.title}>
+		                                {name}
+		                            </Title>
+		                            <Caption style={styleDrawContent.caption}></Caption>
+		                        </View>
+		                   	</View>
+		                   	<View>
+		                        <View style={styleDrawContent.section}>
+		                            <Paragraph
+		                                style={[
+		                                    styleDrawContent.paragraph,
+		                                    styleDrawContent.caption
+		                                ]}
+		                            >
+		                                Workout Streak: {currentStreak}
+		                            </Paragraph>
+		                            <Caption style={styleDrawContent.caption}>
+		                                Days In A Row!
+		                            </Caption>
+		                        </View>
+		                        <View style={styleDrawContent.section}>
+		                            <Paragraph
+		                                style={[
+		                                    styleDrawContent.paragraph,
+		                                    styleDrawContent.caption
+		                                ]}
+		                            >
+		                                Diet Goal:
+		                            </Paragraph>
+		                            <Caption style={styleDrawContent.caption}>
+		                                {weightDiff > 0 ? `${weightDiff} lbs To Go` : weightDiff === 0 ? 'Set a goal weight' : 'Goal Reached! 🎉'}
+		                            </Caption>
+		                        </View>
+		                   	</View>
+		                </View>
+		                <Drawer.Section>
+		                   	<DrawerItem
+		                        icon={({color, size}) => (
+		                            <Icon name="home" color={color} size={size} />
+		                        )}
+		                        label="Home"
+		                        onPress={() => {
+		                            navigation.navigate("mainHome");
+		                        }}
+		                   	/>
+		                   	<DrawerItem
+		                        icon={({color, size}) => (
+		                            <Icon
+		                                name="format-list-numbered"
+		                                color={color}
+		                                size={size}
+		                            />
+		                        )}
+		                        label="My Routines"
+		                        onPress={() => {
+		                            navigation.navigate("MyRoutines");
+		                        }}
+		                   	/>
+		                   	<DrawerItem
+		                        icon={({color, size}) => (
+		                            <Icon
+		                                name="food-variant"
+		                                color={color}
+		                                size={size}
+		                            />
+		                        )}
+		                        label="My Nutrition"
+		                        onPress={() => {
+		                            navigation.navigate("MyNutrition");
+		                        }}
+		                   	/>
+		                </Drawer.Section>
+		            </View>
+		        </DrawerContentScrollView>
+		    ) : null}
 		</View>
 	);
-}
+}	
 export {DrawerContent};
