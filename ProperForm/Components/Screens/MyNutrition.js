@@ -1,12 +1,13 @@
 import React, {useState, useEffect} from "react";
 import {useFocusEffect} from "@react-navigation/native";
-import { View, Image, Text, TouchableOpacity, Dimensions, Alert } from "react-native";
+import { View, Image, Text, TouchableOpacity, Dimensions, Alert, Modal, StyleSheet } from "react-native";
 import { views, text, button, logstyle, nut, image} from "./Styles";
 import { LineChart } from "react-native-chart-kit"
 import { TextInput, SafeAreaView, ScrollView, Button } from "react-native";
 import app from "../firebase";
 import { getAuth } from "firebase/auth";
-import { getFirestore, doc, getDoc, setDoc, collection, addDoc, getDocs, query, orderBy, serverTimestamp, onSnapshot } from "firebase/firestore";
+import { getFirestore, doc, getDoc, setDoc, collection, addDoc, getDocs, query, orderBy, serverTimestamp, onSnapshot, limit } from "firebase/firestore";
+import { format, addDays, isSameDay, parseISO, isYesterday, isToday } from 'date-fns';
 
 //function to setup the Nutrtion Home screen
 function MyNutrition({ navigation }) {    
@@ -24,6 +25,10 @@ function MyNutrition({ navigation }) {
     const [isLog, setIsLog] = useState();
     const [isSign, setIsSign] = useState(false);
     const [userID, setUserID] = useState();
+    const [workoutDays, setWorkoutDays] = useState([]);
+    const [currentStreak, setCurrentStreak] = useState(0);
+    const [showStreakModal, setShowStreakModal] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const db = getFirestore(app);
 
 	useFocusEffect(
@@ -178,19 +183,128 @@ function MyNutrition({ navigation }) {
         }
     };
 
-    const postWorkout = async() =>{
+    // Function to check and update streak
+    const checkAndUpdateStreak = (workoutDates) => {
+        if (!workoutDates || workoutDates.length === 0) {
+            setCurrentStreak(0);
+            return;
+        }
+
+        // Convert string dates to Date objects and sort in descending order
+        const sortedDates = [...workoutDates]
+            .map(dateStr => parseISO(dateStr))
+            .sort((a, b) => b - a);
+
+        let streak = 0;
+        let currentDate = new Date();
+        
+        // Check if today is already logged
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        // If today is already logged, start counting from yesterday
+        if (sortedDates.length > 0 && isSameDay(parseISO(workoutDates[0]), today)) {
+            streak = 1;
+            currentDate = addDays(today, -1);
+        }
+
+        // Check for consecutive days
+        for (const workoutDate of sortedDates) {
+            const workoutDay = new Date(workoutDate);
+            workoutDay.setHours(0, 0, 0, 0);
+            
+            if (isSameDay(workoutDay, currentDate) || 
+                isSameDay(workoutDay, addDays(currentDate, -1))) {
+                if (!isSameDay(workoutDay, today)) {
+                    streak++;
+                }
+                currentDate = workoutDay;
+            } else {
+                break;
+            }
+        }
+
+        setCurrentStreak(streak);
+    };
+
+    // Function to log today's workout
+    const logTodaysWorkout = async () => {
         try {
             const auth = getAuth(app);
-            const uid = auth.currentUser?.uid;
-            if (!uid) {
-                Alert.alert('Sign in required', 'Please sign in to save your workout.');
+            const user = auth.currentUser;
+            
+            if (!user) {
+                Alert.alert('Error', 'Please sign in to log workouts');
                 return;
             }
-            const userRef = doc(db, "users", uid);
-            await setDoc(userRef, { workout: true }, { merge: true });
-        } catch (e) {
-            console.log('Firestore write error (postWorkout):', e);
+
+            const today = new Date().toISOString().split('T')[0];
+            const workoutRef = collection(db, "users", user.uid, "workoutDays");
+            
+            // Check if already logged today
+            const q = query(workoutRef, orderBy("date", "desc"), limit(1));
+            const querySnapshot = await getDocs(q);
+            
+            if (!querySnapshot.empty) {
+                const lastWorkout = querySnapshot.docs[0].data().date;
+                if (lastWorkout === today) {
+                    Alert.alert('Workout already logged for today!');
+                    setShowStreakModal(false);
+                    return;
+                }
+            }
+
+            // Add today's workout
+            await addDoc(workoutRef, {
+                date: today,
+                timestamp: serverTimestamp()
+            });
+
+            // Update local state
+            setWorkoutDays(prev => [today, ...prev]);
+            setCurrentStreak(prev => prev + 1);
+            setShowStreakModal(false);
+            
+            Alert.alert('Success', "Today's workout logged successfully!");
+
+        } catch (error) {
+            console.error("Error logging workout:", error);
+            Alert.alert('Error', 'Failed to log workout. Please try again.');
         }
+    };
+
+    // Load workout days on component mount
+    useEffect(() => {
+        const loadWorkoutDays = async () => {
+            try {
+                const auth = getAuth(app);
+                const user = auth.currentUser;
+                
+                if (!user) return;
+
+                const workoutRef = collection(db, "users", user.uid, "workoutDays");
+                const q = query(workoutRef, orderBy("date", "desc"));
+                
+                const unsubscribe = onSnapshot(q, (querySnapshot) => {
+                    const dates = querySnapshot.docs.map(doc => doc.data().date);
+                    setWorkoutDays(dates);
+                    checkAndUpdateStreak(dates);
+                    setIsLoading(false);
+                });
+
+                return () => unsubscribe();
+            } catch (error) {
+                console.error("Error loading workout days:", error);
+                setIsLoading(false);
+            }
+        };
+
+        loadWorkoutDays();
+    }, []);
+
+    // Original postWorkout function now uses the new logTodaysWorkout
+    const postWorkout = async() => {
+        await logTodaysWorkout();
     };
 
     return (
@@ -278,17 +392,134 @@ function MyNutrition({ navigation }) {
                             style={logstyle.submitProgress}
                         />
                     </TouchableOpacity>	
+                    <View style={styles.streakContainer}>
+                        <Text style={styles.streakText}>🔥 {currentStreak} day streak</Text>
+                    </View>
                     <Text style={nut.NutFoodTitleText}>
                         Did you workout today?
                     </Text>	
-                    <TouchableOpacity style={nut.submitProgress} onPress={() => {postWorkout();}}>
-                        <Text>Yes</Text>
-                    </TouchableOpacity>    
+                    <TouchableOpacity 
+                        style={[nut.submitProgress, styles.workoutButton]}
+                        onPress={() => setShowStreakModal(true)}
+                    >
+                        <Text style={styles.workoutButtonText}>Log Workout</Text>
+                    </TouchableOpacity>
                 </View>
             </View>
             </ScrollView>
+            {showStreakModal && (
+                <Modal
+                    animationType="fade"
+                    transparent={true}
+                    visible={showStreakModal}
+                    onRequestClose={() => setShowStreakModal(false)}
+                >
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.modalContent}>
+                            <Text style={styles.modalTitle}>Workout Streak!</Text>
+                            <Text style={styles.modalText}>
+                                {currentStreak > 0 
+                                    ? `You're on a ${currentStreak}-day workout streak!`
+                                    : "Start your workout streak today!"
+                                }
+                            </Text>
+                            <Text style={styles.modalText}>Did you work out today?</Text>
+                            <View style={styles.modalButtons}>
+                                <TouchableOpacity 
+                                    style={[styles.modalButton, styles.yesButton]}
+                                    onPress={logTodaysWorkout}
+                                >
+                                    <Text style={styles.buttonText}>Yes</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity 
+                                    style={[styles.modalButton, styles.noButton]}
+                                    onPress={() => setShowStreakModal(false)}
+                                >
+                                    <Text style={styles.buttonText}>Not Today</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </View>
+                </Modal>
+            )}
         </SafeAreaView>
     );
 }
+
+const styles = StyleSheet.create({
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+    },
+    streakContainer: {
+        alignItems: 'center',
+        marginTop: 10,
+    },
+    streakText: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#FF6B6B',
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalContent: {
+        backgroundColor: 'white',
+        padding: 20,
+        borderRadius: 10,
+        width: '80%',
+        alignItems: 'center',
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 10,
+        color: '#333',
+    },
+    modalText: {
+        fontSize: 16,
+        textAlign: 'center',
+        marginBottom: 20,
+        color: '#555',
+    },
+    modalButtons: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        width: '100%',
+    },
+    modalButton: {
+        padding: 12,
+        borderRadius: 5,
+        width: '45%',
+        alignItems: 'center',
+    },
+    yesButton: {
+        backgroundColor: '#4CAF50',
+    },
+    noButton: {
+        backgroundColor: '#f44336',
+    },
+    buttonText: {
+        color: 'white',
+        fontWeight: 'bold',
+    },
+    workoutButton: {
+        backgroundColor: '#1f65ff',
+        padding: 15,
+        borderRadius: 5,
+        margin: 10,
+        alignItems: 'center',
+    },
+    workoutButtonText: {
+        color: 'white',
+        fontWeight: 'bold',
+        fontSize: 16,
+    },
+});
 
 export { MyNutrition };
