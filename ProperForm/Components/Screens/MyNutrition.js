@@ -178,6 +178,21 @@ function MyNutrition({ navigation }) {
         }
     };
 
+    const postWorkout = async() =>{
+        try {
+            const auth = getAuth(app);
+            const uid = auth.currentUser?.uid;
+            if (!uid) {
+                Alert.alert('Sign in required', 'Please sign in to save your workout.');
+                return;
+            }
+            const userRef = doc(db, "users", uid);
+            await setDoc(userRef, { workout: true }, { merge: true });
+        } catch (e) {
+            console.log('Firestore write error (postWorkout):', e);
+        }
+    };
+
     return (
         <SafeAreaView>
             <ScrollView>
@@ -262,7 +277,13 @@ function MyNutrition({ navigation }) {
                             source={require("./../../img/submit.png")}
                             style={logstyle.submitProgress}
                         />
-                    </TouchableOpacity>		
+                    </TouchableOpacity>	
+                    <Text style={nut.NutFoodTitleText}>
+                        Did you workout today?
+                    </Text>	
+                    <TouchableOpacity style={nut.submitProgress} onPress={() => {postWorkout();}}>
+                        <Text>Yes</Text>
+                    </TouchableOpacity>    
                 </View>
             </View>
             </ScrollView>
