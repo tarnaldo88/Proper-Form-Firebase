@@ -1,20 +1,24 @@
 import React, {useState, useEffect} from "react";
 import {View, AsyncStorage} from "react-native";
 import {
-	useTheme,
-	Avatar,
-	Title,
-	Caption,
-	Paragraph,
-	Drawer,
-	Text,
-	TouchableRipple,
-	Switch
+    useTheme,
+    Avatar,
+    Title,
+    Caption,
+    Paragraph,
+    Drawer,
+    Text,
+    TouchableRipple,
+    Switch
 } from "react-native-paper";
 import {DrawerContentScrollView, DrawerItem} from "@react-navigation/drawer";
 import {styleDrawContent} from "./Styles";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import {useFocusEffect} from "@react-navigation/native";
+import { getAuth } from "firebase/auth";
+import { getFirestore, collection, query, orderBy, onSnapshot, limit } from "firebase/firestore";
+import app from "../firebase";
+import { parseISO, isSameDay, addDays } from 'date-fns';
 
 //style={styles.row} can also be used for the View style holding the double paragraph caption section
 
@@ -26,18 +30,73 @@ function DrawerContent({props, navigation}) {
 	const [isLog, setIsLog] = useState();
 	const [isSign, setIsSign] = useState();
 	const [userID, setUserID] = useState();
+	const [currentStreak, setCurrentStreak] = useState(0);
+	const db = getFirestore(app);
 
-	useEffect(
-		React.useCallback(() => {
-		  // Do something when the screen is focused
-		//   Storage.load(setUserID, setName, setIsLog);
-		//   Storage.signOut(setIsSign);
-		  return () => {
-			// Do something when the screen is unfocused
-			// Useful for cleanup functions as
-		  };
-		}, [])
-	  );
+	// Function to check and update streak
+    const checkAndUpdateStreak = (workoutDates) => {
+        if (!workoutDates || workoutDates.length === 0) {
+            setCurrentStreak(0);
+            return;
+        }
+
+        // Convert string dates to Date objects and sort in descending order
+        const sortedDates = [...workoutDates]
+            .map(dateStr => parseISO(dateStr))
+            .sort((a, b) => b - a);
+
+        let streak = 0;
+        let currentDate = new Date();
+        
+        // Check if today is already logged
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        // If today is already logged, start counting from yesterday
+        if (sortedDates.length > 0 && isSameDay(parseISO(workoutDates[0]), today)) {
+            streak = 1;
+            currentDate = addDays(today, -1);
+        }
+
+        // Check for consecutive days
+        for (const workoutDate of sortedDates) {
+            const workoutDay = new Date(workoutDate);
+            workoutDay.setHours(0, 0, 0, 0);
+            
+            if (isSameDay(workoutDay, currentDate) || 
+                isSameDay(workoutDay, addDays(currentDate, -1))) {
+                if (!isSameDay(workoutDay, today)) {
+                    streak++;
+                }
+                currentDate = workoutDay;
+            } else {
+                break;
+            }
+        }
+
+        setCurrentStreak(streak);
+    };
+
+    // Load workout days when component mounts or user changes
+    useEffect(() => {
+        const auth = getAuth(app);
+        const user = auth.currentUser;
+        
+        if (!user) {
+            setCurrentStreak(0);
+            return;
+        }
+
+        const workoutRef = collection(db, "users", user.uid, "workoutDays");
+        const q = query(workoutRef, orderBy("date", "desc"));
+        
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+            const dates = querySnapshot.docs.map(doc => doc.data().date);
+            checkAndUpdateStreak(dates);
+        });
+
+        return () => unsubscribe();
+    }, []);
 
 	const paperTheme = useTheme();
 
@@ -83,7 +142,7 @@ function DrawerContent({props, navigation}) {
 										styleDrawContent.caption
 									]}
 								>
-									Workout Streak: 
+									Workout Streak: {currentStreak}
 								</Paragraph>
 								<Caption style={styleDrawContent.caption}>
 								8 Days In A Row!
@@ -226,7 +285,7 @@ function DrawerContent({props, navigation}) {
 										styleDrawContent.caption
 									]}
 								>
-									Workout Streak: 
+									Workout Streak: {currentStreak}
 								</Paragraph>
 								<Caption style={styleDrawContent.caption}>
 								8 Days In A Row!
