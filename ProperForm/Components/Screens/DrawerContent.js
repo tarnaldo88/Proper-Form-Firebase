@@ -120,7 +120,8 @@ function DrawerContent({props, navigation}) {
 				const userDoc = await getDoc(doc(db, "users", user.uid));
 				if (userDoc.exists()) {
 					const data = userDoc.data();
-                    setWeightDiff(data.weight - data.goalWeight);							
+                    setWeightDiff(data.weight - data.goalWeight);
+                    setGoalWeight(data.goalWeight);							
 				}
             } catch (error) {
                 console.error("Error updating weight difference:", error);
@@ -192,15 +193,19 @@ function DrawerContent({props, navigation}) {
                                             styleDrawContent.caption
                                         ]}
                                     >
-                                        Current Weight: {weightDiff} lbs
+                                        {weightDiff > 0 
+                                            ? `${weightDiff} lbs to reach your goal of ${goalWeight} lbs` 
+                                            : weightDiff < 0 
+                                                ? `You've reached your goal weight! 🎉` 
+                                                : 'Set a goal weight in your profile'}
                                     </Paragraph>
-                                    <Caption style={styleDrawContent.caption}>
+                                    {/* <Caption style={styleDrawContent.caption}>
                                         {weightDiff > 0 
                                             ? `to reach your goal of ${goalWeight} lbs` 
                                             : weightDiff < 0 
                                                 ? `You've reached your goal weight! 🎉` 
                                                 : 'Set a goal weight in your profile'}
-                                    </Caption>
+                                    </Caption> */}
                                 </View>
                             </View>
                         </View>
