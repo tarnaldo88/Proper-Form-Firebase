@@ -9,17 +9,18 @@ import {
     Drawer,
     Text,
     TouchableRipple,
-    Switch
+    Switch,
+    Button    
 } from "react-native-paper";
 import {DrawerContentScrollView, DrawerItem} from "@react-navigation/drawer";
 import {styleDrawContent} from "./Styles";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import {useFocusEffect} from "@react-navigation/native";
-import { getAuth } from "firebase/auth";
 import { getFirestore, collection, query, orderBy, onSnapshot, limit } from "firebase/firestore";
 import app from "../firebase";
 import { parseISO, isSameDay, addDays } from 'date-fns';
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 //style={styles.row} can also be used for the View style holding the double paragraph caption section
 
@@ -28,14 +29,15 @@ function DrawerContent({props, navigation}) {
 	const [isDarkTheme, setIsDarkTheme] = React.useState(false);
 
 	const [name, setName] = useState("Username");
-	const [isLog, setIsLog] = useState();
-	const [isSign, setIsSign] = useState();
-	const [userID, setUserID] = useState();
+	const [isLog, setIsLog] = useState(false);
+	const [isSign, setIsSign] = useState(false);
+	const [userID, setUserID] = useState(null);
 	const [currentStreak, setCurrentStreak] = useState(0);
 	const [weightDiff, setWeightDiff] = useState(0);
-	const [weight, setWeight] = useState(150);
-	const [goalWeight, setGoalWeight] = useState(150);
+	const [isLoading, setIsLoading] = useState(true);
+    const [goalWeight, setGoalWeight] = useState(0);
 	const db = getFirestore(app);
+	const auth = getAuth(app);
 
 	// Function to check and update streak
     const checkAndUpdateStreak = (workoutDates) => {
@@ -86,6 +88,7 @@ function DrawerContent({props, navigation}) {
         let isMounted = true;
         const auth = getAuth(app);
         const user = auth.currentUser;
+        setIsLog(!!user);  // This will set isLog to true if user exists, false otherwise
         
         if (!user) {
             setCurrentStreak(0);
@@ -116,9 +119,8 @@ function DrawerContent({props, navigation}) {
 	
 				const userDoc = await getDoc(doc(db, "users", user.uid));
 				if (userDoc.exists()) {
-					const data = userDoc.data();								
-					setWeight(data.weight || 150);
-					setGoalWeight(data.goalWeight || 150);								
+					const data = userDoc.data();
+                    setWeightDiff(data.weight - data.goalWeight);							
 				}
             } catch (error) {
                 console.error("Error updating weight difference:", error);
@@ -146,97 +148,111 @@ function DrawerContent({props, navigation}) {
 		setIsDarkTheme(!isDarkTheme);
 	};
 
-	return (
-		<View style={{flex: 1}}>
-		    {isLog ? (
-		        <DrawerContentScrollView {...props}>
-		            <View style={styleDrawContent.drawerContent}>
-		                <View style={styleDrawContent.userInfoSection}>
-		                   	<View style={{flexDirection: "row", marginTop: 15}}>
-		                        <Avatar.Image
-		                            source={require("./../../img/user.png")}
-		                            size={50}
-		                        />
-		                        <View style={{
-		                            marginLeft: 15,
-		                            flexDirection: "column"
-		                        }}>
-		                            <Title style={styleDrawContent.title}>
-		                                {name}
-		                            </Title>
-		                            <Caption style={styleDrawContent.caption}></Caption>
-		                        </View>
-		                   	</View>
-		                   	<View>
-		                        <View style={styleDrawContent.section}>
-		                            <Paragraph
-		                                style={[
-		                                    styleDrawContent.paragraph,
-		                                    styleDrawContent.caption
-		                                ]}
-		                            >
-		                                Workout Streak: {currentStreak}
-		                            </Paragraph>
-		                            <Caption style={styleDrawContent.caption}>
-		                                Days In A Row!
-		                            </Caption>
-		                        </View>
-		                        <View style={styleDrawContent.section}>
-		                            <Paragraph
-		                                style={[
-		                                    styleDrawContent.paragraph,
-		                                    styleDrawContent.caption
-		                                ]}
-		                            >
-		                                Diet Goal:
-		                            </Paragraph>
-		                            <Caption style={styleDrawContent.caption}>
-		                                {weightDiff > 0 ? `${weightDiff} lbs To Go` : weightDiff === 0 ? 'Set a goal weight' : 'Goal Reached! 🎉'}
-		                            </Caption>
-		                        </View>
-		                   	</View>
-		                </View>
-		                <Drawer.Section>
-		                   	<DrawerItem
-		                        icon={({color, size}) => (
-		                            <Icon name="home" color={color} size={size} />
-		                        )}
-		                        label="Home"
-		                        onPress={() => {
-		                            navigation.navigate("mainHome");
-		                        }}
-		                   	/>
-		                   	<DrawerItem
-		                        icon={({color, size}) => (
-		                            <Icon
-		                                name="format-list-numbered"
-		                                color={color}
-		                                size={size}
-		                            />
-		                        )}
-		                        label="My Routines"
-		                        onPress={() => {
-		                            navigation.navigate("MyRoutines");
-		                        }}
-		                   	/>
-		                   	<DrawerItem
-		                        icon={({color, size}) => (
-		                            <Icon
-		                                name="food-variant"
-		                                color={color}
-		                                size={size}
-		                            />
-		                        )}
-		                        label="My Nutrition"
-		                        onPress={() => {
-		                            navigation.navigate("MyNutrition");
-		                        }}
-		                   	/>
-		                </Drawer.Section>
-		            </View>
-		        </DrawerContentScrollView>
-		    ) : null}
-		</View>
+    return (
+        <View style={{flex: 1}}>
+            {isLog ? (
+                <DrawerContentScrollView {...props}>
+                    <View style={styleDrawContent.drawerContent}>
+                        <View style={styleDrawContent.userInfoSection}>
+                            <View style={{flexDirection: "row", marginTop: 15}}>
+                                <Avatar.Image
+                                    source={require("./../../img/user.png")}
+                                    size={50}
+                                />
+                                <View style={{
+                                    marginLeft: 15,
+                                    flexDirection: "column"
+                                }}>
+                                    <Title style={styleDrawContent.title}>
+                                        {name}
+                                    </Title>
+                                    <Caption style={styleDrawContent.caption}>
+                                        {userID ? `ID: ${userID.substring(0, 8)}...` : ''}
+                                    </Caption>
+                                </View>
+                            </View>
+                            <View>
+                                <View style={styleDrawContent.section}>
+                                    <Paragraph
+                                        style={[
+                                            styleDrawContent.paragraph,
+                                            styleDrawContent.caption
+                                        ]}
+                                    >
+                                        Workout Day Streak: {currentStreak}
+                                    </Paragraph>
+                                    <Caption style={styleDrawContent.caption}>
+                                        {currentStreak === 0 ? 'Start your fitness journey today!' : ''}
+                                    </Caption>
+                                </View>
+                                <View style={styleDrawContent.section}>
+                                    <Paragraph
+                                        style={[
+                                            styleDrawContent.paragraph,
+                                            styleDrawContent.caption
+                                        ]}
+                                    >
+                                        Current Weight: {weightDiff} lbs
+                                    </Paragraph>
+                                    <Caption style={styleDrawContent.caption}>
+                                        {weightDiff > 0 
+                                            ? `to reach your goal of ${goalWeight} lbs` 
+                                            : weightDiff < 0 
+                                                ? `You've reached your goal weight! 🎉` 
+                                                : 'Set a goal weight in your profile'}
+                                    </Caption>
+                                </View>
+                            </View>
+                        </View>
+                        <Drawer.Section style={{marginTop: 15}}>
+                            <DrawerItem
+                                icon={({color, size}) => (
+                                    <Icon name="home" color={color} size={size} />
+                                )}
+                                label="Home"
+                                onPress={() => navigation.navigate("mainHome")}
+                            />
+                            <DrawerItem
+                                icon={({color, size}) => (
+                                    <Icon name="format-list-numbered" color={color} size={size} />
+                                )}
+                                label="My Routines"
+                                onPress={() => navigation.navigate("MyRoutines")}
+                            />
+                            <DrawerItem
+                                icon={({color, size}) => (
+                                    <Icon name="food-variant" color={color} size={size} />
+                                )}
+                                label="My Nutrition"
+                                onPress={() => navigation.navigate("MyNutrition")}
+                            />
+                            <DrawerItem
+                                icon={({color, size}) => (
+                                    <Icon name="account" color={color} size={size} />
+                                )}
+                                label="My Account"
+                                onPress={() => navigation.navigate("Account")}
+                            />
+                        </Drawer.Section>
+                    </View>
+                </DrawerContentScrollView>
+            ) : (
+                <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20}}>
+                    <Icon name="account-lock" size={50} color="#666" style={{marginBottom: 20}} />
+                    <Title>Not Logged In</Title>
+                    <Paragraph style={{textAlign: 'center', marginTop: 10, marginBottom: 20}}>
+                        Please log in to access your profile and track your fitness journey.
+                    </Paragraph>
+                    <Button 
+                        mode="contained" 
+                        onPress={() => navigation.navigate("Login")}
+                        style={{marginTop: 10}}
+                    >
+                        Go to Login
+                    </Button>
+                </View>
+            )}
+        </View>
 	);
 }	
 export {DrawerContent};
