@@ -169,8 +169,8 @@ function CommunityHomeScreen({ navigation }) {
             />
             <View style={styles.cardFooter}>
               <View style={styles.cardContent}>
-                <Text style={styles.name}>Competitions</Text>
-                <Text style={styles.cardDescription}>Compete with friends</Text>
+                <Text style={styles.name}>Steps</Text>
+                <Text style={styles.cardDescription}>Track your steps</Text>
                 <TouchableOpacity 
                   style={styles.followButton}
                   onPress={() => navigation.navigate("postScreen")}

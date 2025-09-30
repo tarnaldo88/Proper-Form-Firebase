@@ -24,7 +24,7 @@ class PostScreen extends Component {
 	}
 
 	componentDidMount() {
-		this.fetchTopSteps();
+		this.fetchUserSteps();
 	}
 
 	fetchUserSteps = async () => {
