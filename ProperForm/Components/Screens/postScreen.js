@@ -30,7 +30,7 @@ class postScreen extends Component {
 			champimg: "https://bootdey.com/img/Content/avatar/avatar7.png",
 			userSteps: 0,
 		}
-		this.getSteps();
+		// this.getSteps();
 		const selectedItems = [ { id: 0, name: "", steps: 0},]
 	}	
 	
@@ -78,57 +78,57 @@ class postScreen extends Component {
         }
       }
 
-	getSteps(){
-		let arr=[];
-		var newArr = [];
-		let i = 0, x = 0;
-		let day = this.makeDate();
-		console.log(this.makeDate());
-		axios.get("http://52.53.203.248/ProperApi/api/Steps", {})
-            .then(
-                response => {             
-                    let goalWeight = response.data;
-					for(i = 0;i<response.data.length;i++){
-						arr.push(goalWeight[i]);
-						// console.log(i + " = " + goalWeight[i].userID)
-					}
-					// console.log(arr.length);
-					let today = false;
-					let M = new Date().getMonth() + 1;
-					var arrM;
-					for(i = 0; i < arr.length; i++) {						
-						let D = parseInt(day);
-						let arrD = parseInt("0" + arr[i].date.substring(8,10));
-						arrM = parseInt("0" + arr[i].date.substring(5,7));
-						//make sure date of item is from today
-						if(arrD == D && arrM == M){
-							for(x = 0; x<this.state.data.length;x++){
-								if( this.state.data[x].id === arr[i].userID){
-									if(this.state.data[x].steps < arr[i].steps){
-										this.state.data[x].steps = arr[i].steps;	
-									}					
-									this.state.data[x].searched = true;
-									if(this.state.steps < this.state.data[x].steps){
-										console.log(this.state.data[x].name + ":: " + this.state.data[x].steps + "UID " +  arr[i].userID)
-										this.setState(({ steps }) => ({
-											steps: this.state.data[x].steps
-										}));
-										this.setState(({ champ }) => ({
-											champ: this.state.data[x].name
-										}));
-										// this.state.steps = this.state.data[x].steps;
-										//this.state.champ= this.state.data[x].name;
-										this.state.champimg = this.state.data[x].image;
-										this.setState(({ champ }) => ({
-											champimg: this.state.data[x].image
-										}));
-									}
-								}
-							}		
-						}										
-					}		
-            });  
-	}
+	// getSteps(){
+	// 	let arr=[];
+	// 	var newArr = [];
+	// 	let i = 0, x = 0;
+	// 	let day = this.makeDate();
+	// 	console.log(this.makeDate());
+	// 	axios.get("http://52.53.203.248/ProperApi/api/Steps", {})
+    //         .then(
+    //             response => {             
+    //                 let goalWeight = response.data;
+	// 				for(i = 0;i<response.data.length;i++){
+	// 					arr.push(goalWeight[i]);
+	// 					// console.log(i + " = " + goalWeight[i].userID)
+	// 				}
+	// 				// console.log(arr.length);
+	// 				let today = false;
+	// 				let M = new Date().getMonth() + 1;
+	// 				var arrM;
+	// 				for(i = 0; i < arr.length; i++) {						
+	// 					let D = parseInt(day);
+	// 					let arrD = parseInt("0" + arr[i].date.substring(8,10));
+	// 					arrM = parseInt("0" + arr[i].date.substring(5,7));
+	// 					//make sure date of item is from today
+	// 					if(arrD == D && arrM == M){
+	// 						for(x = 0; x<this.state.data.length;x++){
+	// 							if( this.state.data[x].id === arr[i].userID){
+	// 								if(this.state.data[x].steps < arr[i].steps){
+	// 									this.state.data[x].steps = arr[i].steps;	
+	// 								}					
+	// 								this.state.data[x].searched = true;
+	// 								if(this.state.steps < this.state.data[x].steps){
+	// 									console.log(this.state.data[x].name + ":: " + this.state.data[x].steps + "UID " +  arr[i].userID)
+	// 									this.setState(({ steps }) => ({
+	// 										steps: this.state.data[x].steps
+	// 									}));
+	// 									this.setState(({ champ }) => ({
+	// 										champ: this.state.data[x].name
+	// 									}));
+	// 									// this.state.steps = this.state.data[x].steps;
+	// 									//this.state.champ= this.state.data[x].name;
+	// 									this.state.champimg = this.state.data[x].image;
+	// 									this.setState(({ champ }) => ({
+	// 										champimg: this.state.data[x].image
+	// 									}));
+	// 								}
+	// 							}
+	// 						}		
+	// 					}										
+	// 				}		
+    //         });  
+	// }
 	nav(rout){
 		if(rout){
 			var testArr = this.state.data;

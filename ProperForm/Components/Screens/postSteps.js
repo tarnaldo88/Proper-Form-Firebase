@@ -74,32 +74,32 @@ function postSteps({navigation, route}) {
 	};
 
 	//axios call to post or put new food entry	
-	const PostStepEntry = async () => {	
-		var arr;
-        await setUserID(1);
-        console.log(fake + "||" + steps + "||" + date);
-		await axios
-			.post("http://52.53.203.248/ProperApi/api/Steps", {
-				UserId: 25,
-				Steps: steps,
-				Date: date,
-			})
-			.then(
-				response => {
-                    console.log(response);
-				},
-				error => {
-					console.log(error);
-				}
-			);
-			return arr;
-	};
+	// const PostStepEntry = async () => {	
+	// 	var arr;
+    //     await setUserID(1);
+    //     console.log(fake + "||" + steps + "||" + date);
+	// 	await axios
+	// 		.post("http://52.53.203.248/ProperApi/api/Steps", {
+	// 			UserId: 25,
+	// 			Steps: steps,
+	// 			Date: date,
+	// 		})
+	// 		.then(
+	// 			response => {
+    //                 console.log(response);
+	// 			},
+	// 			error => {
+	// 				console.log(error);
+	// 			}
+	// 		);
+	// 		return arr;
+	// };
 
     const validNav = async () => {			
 		if(steps === 0){
 			alert("Must Enter Steps Taken");
 		} else {
-			PostStepEntry();
+			// PostStepEntry();
 			return (navigation.navigate("Community"));	
 		}		
 	};
