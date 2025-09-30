@@ -25,7 +25,7 @@ LogBox.ignoreLogs(['Setting a timer for a long period of time'])
 // const db = firebase.firestore()
 // const chatsRef = db.collection('chats')
 
-function testCHat() {
+function TestCHat() {
     const [user, setUser] = useState(null)
     const [name, setName] = useState('')
     const [messages, setMessages] = useState([])
@@ -82,7 +82,7 @@ function testCHat() {
     }
     return <GiftedChat messages={messages} user={user} onSend={handleSend} />
 }
-export {testCHat};
+export {TestCHat};
 
 const styles = StyleSheet.create({
     container: {

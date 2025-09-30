@@ -24,7 +24,7 @@ import {Friends} from "./Friends";
 import {TodayFriend} from "./TodayFriend";
 import {AddFriend} from "./AddFriend";
 import {PostScreen} from "./PostScreen";
-import { testCHat } from "./testCHat";
+import { TestCHat } from "./TestCHat";
 import { ChatSelect } from "./ChatSelect";
 import {FriendChatB} from "./FriendChatB";
 import {FriendChatA} from "./FriendChatA";
@@ -492,7 +492,7 @@ const CommunityStackScreen = ({navigation}) => {
             />
             <CommunityStack.Screen
                 name="test"
-                component={testCHat}
+                component={TestCHat}
                 options={{
                     title: "John",
                     headerRight: () => (
