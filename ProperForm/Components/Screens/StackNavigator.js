@@ -23,13 +23,13 @@ import { UserDetailsEntry } from "./UserDetailsEntry";
 import {Friends} from "./Friends";
 import {TodayFriend} from "./TodayFriend";
 import {AddFriend} from "./AddFriend";
-import {postScreen} from "./postScreen";
+import {PostScreen} from "./PostScreen";
 import { testCHat } from "./testCHat";
 import { ChatSelect } from "./ChatSelect";
 import {FriendChatB} from "./FriendChatB";
 import {FriendChatA} from "./FriendChatA";
-import {postSteps} from "./postSteps";
-import {rankings} from "./rankings";
+import {PostSteps} from "./PostSteps";
+import {Rankingsankings} from "./Rankings";
 import {MyRoutines} from "./MyRoutines";
 // import {TodayNut} from "./TodayNut";
 import TodayNut from "./TodayNut";
@@ -477,7 +477,7 @@ const CommunityStackScreen = ({navigation}) => {
             />
             <CommunityStack.Screen
                 name="postScreen"
-                component={postScreen}
+                component={PostScreen}
                 options={{
                     title: "Compeitions",
                     headerLeft: () => (
@@ -582,7 +582,7 @@ const CommunityStackScreen = ({navigation}) => {
             />
              <CommunityStack.Screen
                 name="postSteps"
-                component={postSteps}
+                component={PostSteps}
                 options={{
                     title: "Steps Taken",
                     headerRight: () => (

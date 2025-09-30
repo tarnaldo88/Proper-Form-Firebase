@@ -18,7 +18,7 @@ import { List } from "react-native-paper";
 import {Collapse,CollapseHeader, CollapseBody} from 'accordion-collapse-react-native';
 import {Dimensions} from "react-native";
 
-function rankings({navigation, route}) {
+function Rankings({navigation, route}) {
     const [data, setData] = useState([]);
     const [sortType, setSortType] = useState('albums');
     const [loading, setLoad] = useState(false);
@@ -88,4 +88,4 @@ function rankings({navigation, route}) {
     );
   }
   
-  export {rankings};
+  export {Rankings};
