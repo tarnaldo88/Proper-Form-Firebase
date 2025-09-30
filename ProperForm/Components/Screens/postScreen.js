@@ -159,7 +159,7 @@ class PostScreen extends Component {
 
 					<TouchableOpacity 
 						style={[styles.button, styles.secondaryButton]}
-						onPress={this.navToRankings}
+						// onPress={this.navToRankings}
 					>
 						<Text style={[styles.buttonText, { color: '#333' }]}>👥 View Leaderboard</Text>
 					</TouchableOpacity>
