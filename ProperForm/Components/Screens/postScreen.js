@@ -10,7 +10,7 @@ import {
 import {views, text, button, image} from "./Styles";
 import axios from "axios";
 
-class postScreen extends Component {
+class PostScreen extends Component {
 	constructor(props) {
 		//const { navigation } = this.props;
 		super(props);
@@ -174,7 +174,7 @@ class postScreen extends Component {
 			);
 		}
 	}
-	export {postScreen};
+	export {PostScreen};
 
     const styles = StyleSheet.create({
 		rowContainer: {

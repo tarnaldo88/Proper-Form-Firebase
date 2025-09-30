@@ -16,7 +16,7 @@ import {useFocusEffect} from "@react-navigation/native";
 import SearchableDropdown from 'react-native-searchable-dropdown';
 
 //function to setup the create nutrition plan screen
-function postSteps({navigation, route}) {
+function PostSteps({navigation, route}) {
 	//stores all the entries made by the User	
 	const [steps, setSteps] = useState(10);
 	const [loading, setLoad] = useState(false);
@@ -136,4 +136,4 @@ function postSteps({navigation, route}) {
             </View>		
 	);
 }
-export {postSteps};
+export {PostSteps};
