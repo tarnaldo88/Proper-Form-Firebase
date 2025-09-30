@@ -29,7 +29,7 @@ import { ChatSelect } from "./ChatSelect";
 import {FriendChatB} from "./FriendChatB";
 import {FriendChatA} from "./FriendChatA";
 import {PostSteps} from "./PostSteps";
-import {Rankingsankings} from "./Rankings";
+import {Rankings} from "./Rankings";
 import {MyRoutines} from "./MyRoutines";
 // import {TodayNut} from "./TodayNut";
 import TodayNut from "./TodayNut";
@@ -431,7 +431,7 @@ const CommunityStackScreen = ({navigation}) => {
             />
             <CommunityStack.Screen
                 name="rankings"
-                component={rankings}
+                component={Rankings}
                 options={{
                     title: "Leaderboard",
                     headerLeft: () => (

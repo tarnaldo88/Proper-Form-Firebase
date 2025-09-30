@@ -1,30 +1,33 @@
 import React, {useState, useEffect, Fragment} from "react";
-import axios from "axios";
 import {
 	View,
 	Image,
 	Text,
 	TouchableOpacity,
 	TextInput,
-	SafeAreaView,
 	ScrollView,
-	FlatList,
-	Button
+	Alert
 } from "react-native";
-import {logstyle, views, text, button, image, nut} from "./Styles";
+import {logstyle, text, nut} from "./Styles";
 import {useFocusEffect} from "@react-navigation/native";
-import SearchableDropdown from 'react-native-searchable-dropdown';
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { auth, db } from "../firebase";
 
 //function to setup the create nutrition plan screen
 function PostSteps({navigation, route}) {
 	//stores all the entries made by the User	
-	const [steps, setSteps] = useState(10);
-	const [loading, setLoad] = useState(false);
-    const [name, setName] = useState("");
-	const [isLog, setIsLog] = useState();
-	const [userID, setUserID] = useState(1);
-    const[fake,setFake] = useState(1);    
-	const [date, setDate] = useState("");
+	const [steps, setSteps] = useState('');
+	const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+    const [currentUser, setCurrentUser] = useState(null);
+    
+    // Get current user on component mount
+    useEffect(() => {
+        const unsubscribe = auth.onAuthStateChanged(user => {
+            setCurrentUser(user);
+        });
+        return unsubscribe; // Cleanup subscription on unmount
+    }, []);
 
     // useFocusEffect(
 	// 	React.useCallback( () => {  // Do something when the screen is focused	
@@ -40,11 +43,11 @@ function PostSteps({navigation, route}) {
 	//   );
 
 	const handleSteps = text => {
-        text = text.replace(/[^0-9]/g, '');
-        text = parseInt(text);
-		setSteps(text);	
-        setDate(makeDate());	
-	}
+        // Only allow numbers and update the state
+        const cleanedText = text.replace(/[^0-9]/g, '');
+        setSteps(cleanedText);
+        setError('');
+    };
 
    const makeDate = () => {			
 		var day = new Date().getDate();
@@ -95,14 +98,38 @@ function PostSteps({navigation, route}) {
 	// 		return arr;
 	// };
 
-    const validNav = async () => {			
-		if(steps === 0){
-			alert("Must Enter Steps Taken");
-		} else {
-			// PostStepEntry();
-			return (navigation.navigate("Community"));	
-		}		
-	};
+    const handleSubmit = async () => {
+        if (!steps) {
+            setError("Please enter the number of steps taken");
+            return;
+        }
+        
+        if (!currentUser) {
+            setError("You must be logged in to save steps");
+            return;
+        }
+
+        setLoading(true);
+        setError('');
+
+        try {
+            // Add a new document with a generated ID
+            await addDoc(collection(db, "steps"), {
+                userId: currentUser.uid,
+                steps: parseInt(steps),
+                date: serverTimestamp(),
+                createdAt: new Date().toISOString()
+            });
+            
+            // Navigate to Community screen on success
+            navigation.navigate("Community");
+        } catch (err) {
+            console.error("Error adding document: ", err);
+            setError("Failed to save steps. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
 	return (	
             <View style={{ flex:1, backgroundColor: "black"}}>	
@@ -117,20 +144,20 @@ function PostSteps({navigation, route}) {
                         <TextInput
                             style={nut.input}
                             underlineColorAndroid="transparent"
-                            keyboardType='numeric'
                             placeholder=" Enter Your Steps"
                             placeholderTextColor="#ffff"
                             autoCapitalize="none"
                             onChangeText={handleSteps}
                         />	
-                        <TouchableOpacity onPress={() => { 							
-                                validNav();
-                            }}>
+                        {error ? <Text style={{color: 'red', textAlign: 'center', marginVertical: 10}}>{error}</Text> : null}
+                        <TouchableOpacity 
+                            onPress={handleSubmit}
+                            disabled={loading}>
                             <Image
                                 source={require("./../../img/submit.png")}
-                                style={logstyle.submitButton}
+                                style={[logstyle.submitButton, loading && {opacity: 0.5}]}
                             />
-                        </TouchableOpacity>	
+                        </TouchableOpacity>
                     </View>
                 </ScrollView>	
             </View>		
