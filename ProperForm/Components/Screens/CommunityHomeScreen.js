@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   userImage: {
-    height: 180,
+    height: 120,
     width: '100%',
     resizeMode: 'cover',
   },
