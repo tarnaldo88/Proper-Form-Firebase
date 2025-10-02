@@ -141,7 +141,7 @@ function CommunityHomeScreen({ navigation }) {
             <View style={styles.cardFooter}>
               <View style={styles.cardContent}>
                 <Text style={styles.name}>Messages</Text>
-                <Text style={styles.cardDescription}>Chat with friends</Text>
+                <Text style={styles.cardDescription}>Chat with trainers</Text>
                 <TouchableOpacity 
                   style={[
                     styles.followButton, 
