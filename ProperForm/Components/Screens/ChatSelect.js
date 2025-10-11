@@ -21,8 +21,8 @@ import {views, text, button, image} from "./Styles";
           data: [
             {id:1, name: "John",   position:"",               image:"https://bootdey.com/img/Content/avatar/avatar1.png"},
             {id:1, name: "Josh",   position:"",               image:"https://bootdey.com/img/Content/avatar/avatar7.png"},
-            {id:2, name: "Ariel",  position:"", image:"https://bootdey.com/img/Content/avatar/avatar5.png"} ,
-            {id:3, name: "Aman", position:"",     image:"https://bootdey.com/img/Content/avatar/avatar4.png"} ,
+            {id:2, name: "Random",  position:"", image:"https://bootdey.com/img/Content/avatar/avatar5.png"} ,
+            {id:3, name: "TestTrainer", position:"",     image:"https://bootdey.com/img/Content/avatar/avatar4.png"} ,
           ]
         };
       }    
