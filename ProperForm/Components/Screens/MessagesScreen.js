@@ -2,87 +2,56 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { GiftedChat } from 'react-native-gifted-chat'
-// import AsyncStorage from '@react-native-community/async-storage'
+
 import {  StyleSheet, TextInput, View, YellowBox, Button, LogBox } from 'react-native'
-// import * as firebase from 'firebase'
-// import 'firebase/firestore'
+import { auth, db } from '../firebase'
+import { collection, addDoc, onSnapshot, orderBy, query, serverTimestamp, doc } from 'firebase/firestore'
 
-// const firebaseConfig = {
-//     apiKey: "AIzaSyCzdVSpQL1sE_TyHd0ELusDZTiH7yScKNw",
-// 	authDomain: "properform-4c301.firebaseapp.com",
-// 	projectId: "properform-4c301",
-// 	storageBucket: "properform-4c301.appspot.com",
-// 	messagingSenderId: "133287042654",
-// 	appId: "1:133287042654:web:12640582d5ed3cdf341ecf"
-// }
+function MessagesScreen({ route }) {
+  const { chatId, otherUser } = route?.params || {};
+  const [messages, setMessages] = useState([]);
 
-// if (firebase.apps.length === 0) {
-//     firebase.initializeApp(firebaseConfig)
-// }
+  const currentUser = auth.currentUser;
+  const giftedUser = currentUser
+    ? { _id: currentUser.uid, name: currentUser.displayName || 'You', avatar: currentUser.photoURL || undefined }
+    : { _id: 'anon', name: 'You' };
 
-// LogBox.ignoreLogs(['Setting a timer for a long period of time'])
+  useEffect(() => {
+    if (!chatId) return;
+    const msgsRef = collection(doc(collection(db, 'conversations'), chatId), 'messages');
+    const q = query(msgsRef, orderBy('createdAt', 'desc'));
+    const unsub = onSnapshot(q, (snap) => {
+      const list = snap.docs.map((d) => {
+        const data = d.data();
+        return {
+          _id: d.id,
+          text: data.text,
+          createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(),
+          user: data.user,
+        };
+      });
+      setMessages(list);
+    });
+    return () => unsub();
+  }, [chatId]);
 
-// const db = firebase.firestore()
-// const chatsRef = db.collection('Josh')
+  const handleSend = async (newMessages = []) => {
+    if (!chatId) return;
+    const msgsRef = collection(doc(collection(db, 'conversations'), chatId), 'messages');
+    await Promise.all(
+      newMessages.map((m) =>
+        addDoc(msgsRef, {
+          text: m.text,
+          createdAt: serverTimestamp(),
+          user: giftedUser,
+        })
+      )
+    );
+  };
 
-function MessagesScreen() {
-    const [user, setUser] = useState(null)
-    const [name, setName] = useState('')
-    const [messages, setMessages] = useState([])
-
-    // useEffect(() => {
-    //     readUser()
-    //     const unsubscribe = chatsRef.onSnapshot((querySnapshot) => {
-    //         const messagesFirestore = querySnapshot
-    //             .docChanges()
-    //             .filter(({ type }) => type === 'added')
-    //             .map(({ doc }) => {
-    //                 const message = doc.data()
-    //                 //createdAt is firebase.firestore.Timestamp instance
-    //                 //https://firebase.google.com/docs/reference/js/firebase.firestore.Timestamp
-    //                 return { ...message, createdAt: message.createdAt.toDate() }
-    //             })
-    //             .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-    //         appendMessages(messagesFirestore)
-    //     })
-    //     return () => unsubscribe()
-    // }, [])
-
-    const appendMessages = useCallback(
-        (messages) => {
-            setMessages((previousMessages) => GiftedChat.append(previousMessages, messages))
-        },
-        [messages]
-    )
-
-    async function readUser() {
-        //const user = await AsyncStorage.getItem('user')
-        if (user) {
-            setUser(JSON.parse(user))
-        }
-    }
-    async function handlePress() {
-        const _id = Math.random().toString(36).substring(7)
-        const user = { _id, name }
-       // await AsyncStorage.setItem('user', JSON.stringify(user))
-        setUser(user)
-    }
-    async function handleSend(messages) {
-        const writes = messages.map((m) => chatsRef.add(m))
-        await Promise.all(writes)
-    }
-
-    if (!user) {
-        return (
-            <View style={styles.container}>
-                <TextInput style={styles.input} placeholder="Enter your name" value={name} onChangeText={setName} />
-                <Button onPress={handlePress} title="Enter the chat" />
-            </View>
-        )
-    }
-    return <GiftedChat messages={messages} user={user} onSend={handleSend} />
+  return <GiftedChat messages={messages} user={giftedUser} onSend={handleSend} />
 }
-export {MessagesScreen};
+export { MessagesScreen };
 
 const styles = StyleSheet.create({
     container: {
