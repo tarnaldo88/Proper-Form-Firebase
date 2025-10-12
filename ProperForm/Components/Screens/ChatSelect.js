@@ -13,19 +13,38 @@ import {
 } from 'react-native';
 import {views, text, button, image} from "./Styles";
 import { auth, db } from "../firebase";
-import { collection, query, where, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, query, where, getDocs, addDoc, serverTimestamp, onSnapshot } from "firebase/firestore";
 
 class ChatSelect extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      data: [
-        {id:1, name: "John",   position:"",               image:"https://bootdey.com/img/Content/avatar/avatar1.png", uid: "john_uid"},
-        {id:1, name: "Josh",   position:"",               image:"https://bootdey.com/img/Content/avatar/avatar7.png", uid: "josh_uid"},
-        {id:2, name: "Random",  position:"", image:"https://bootdey.com/img/Content/avatar/avatar5.png", uid: "random_uid"} ,
-        {id:3, name: "TestTrainer", position:"",     image:"https://bootdey.com/img/Content/avatar/avatar4.png", uid: "testtrainer_uid"} ,
-      ]
+      data: []
     };
+  }
+
+  componentDidMount() {
+    const currentUser = auth.currentUser;
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, where('role', '==', 'trainer'));
+    this.unsubscribeUsers = onSnapshot(q, (snap) => {
+      const list = snap.docs
+        .map((d) => {
+          const u = d.data();
+          return {
+            uid: u.uid || d.id,
+            name: u.displayName || 'Trainer',
+            image: u.photoURL || 'https://bootdey.com/img/Content/avatar/avatar4.png',
+            position: u.title || '',
+          };
+        })
+        .filter((it) => !currentUser || it.uid !== currentUser.uid);
+      this.setState({ data: list });
+    });
+  }
+
+  componentWillUnmount() {
+    if (this.unsubscribeUsers) this.unsubscribeUsers();
   }
 
   async clickEventListener(item) {
@@ -82,7 +101,7 @@ class ChatSelect extends Component {
           horizontal={false}
           numColumns={2}
           keyExtractor= {(item) => {
-            return item.id;
+            return item.uid;
           }}
           renderItem={({item}) => {
             return (

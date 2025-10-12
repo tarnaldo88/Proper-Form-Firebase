@@ -5,7 +5,7 @@ import { GiftedChat } from 'react-native-gifted-chat'
 
 import {  StyleSheet, TextInput, View, YellowBox, Button, LogBox } from 'react-native'
 import { auth, db } from '../firebase'
-import { collection, addDoc, onSnapshot, orderBy, query, serverTimestamp, doc } from 'firebase/firestore'
+import { collection, addDoc, onSnapshot, orderBy, query, serverTimestamp, doc, updateDoc } from 'firebase/firestore'
 
 function MessagesScreen({ route }) {
   const { chatId, otherUser } = route?.params || {};
@@ -38,7 +38,7 @@ function MessagesScreen({ route }) {
   const handleSend = async (newMessages = []) => {
     if (!chatId) return;
     const msgsRef = collection(doc(collection(db, 'conversations'), chatId), 'messages');
-    await Promise.all(
+    const writes = await Promise.all(
       newMessages.map((m) =>
         addDoc(msgsRef, {
           text: m.text,
@@ -47,6 +47,16 @@ function MessagesScreen({ route }) {
         })
       )
     );
+    const convRef = doc(collection(db, 'conversations'), chatId);
+    const lastText = newMessages && newMessages[0] ? newMessages[0].text : '';
+    await updateDoc(convRef, {
+      lastMessage: {
+        text: lastText,
+        createdAt: serverTimestamp(),
+        userId: giftedUser._id,
+      },
+      updatedAt: serverTimestamp(),
+    });
   };
 
   return <GiftedChat messages={messages} user={giftedUser} onSend={handleSend} />
