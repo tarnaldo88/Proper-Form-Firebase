@@ -34,6 +34,7 @@ import {MyRoutines} from "./MyRoutines";
 // import {TodayNut} from "./TodayNut";
 import TodayNut from "./TodayNut";
 import {DisplayMyRoutines} from "./DisplayMyRoutines";
+import { AdminUsersScreen } from "./AdminUsersScreen";
 
 const HomeStack = createStackNavigator();
 const DietStack = createStackNavigator();
@@ -510,6 +511,21 @@ const CommunityStackScreen = ({navigation}) => {
                 component={ChatSelect}
                 options={{
                     title: "Choose which Chat",
+                    headerLeft: () => (
+                        <Icon.Button
+                            name="menu"
+                            size={25}
+                            backgroundColor="#694fad"
+                            onPress={() => navigation.openDrawer()}
+                        ></Icon.Button>
+                    )
+                }}
+            />
+            <CommunityStack.Screen
+                name="AdminUsers"
+                component={AdminUsersScreen}
+                options={{
+                    title: "Admin Users",
                     headerLeft: () => (
                         <Icon.Button
                             name="menu"
