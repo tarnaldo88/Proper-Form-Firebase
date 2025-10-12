@@ -490,7 +490,7 @@ const CommunityStackScreen = ({navigation}) => {
                     )
                 }}
             />
-            <CommunityStack.Screen
+            {/* <CommunityStack.Screen
                 name="test"
                 component={TestCHat}
                 options={{
@@ -504,7 +504,7 @@ const CommunityStackScreen = ({navigation}) => {
                         ></Icon.Button>
                     )
                 }}
-            />
+            /> */}
             <CommunityStack.Screen
                 name="chatSelect"
                 component={ChatSelect}
@@ -520,36 +520,7 @@ const CommunityStackScreen = ({navigation}) => {
                     )
                 }}
             />
-             <CommunityStack.Screen
-                name="friendA"
-                component={FriendChatA}
-                options={{
-                    title: "Ariel",
-                    headerRight: () => (
-                        <Icon.Button
-                            name="menu"
-                            size={25}
-                            backgroundColor="#694fad"
-                            onPress={() => navigation.openDrawer()}
-                        ></Icon.Button>
-                    )
-                }}
-            />
-             <CommunityStack.Screen
-                name="friendB"
-                component={FriendChatB}
-                options={{
-                    title: "Aman",
-                    headerRight: () => (
-                        <Icon.Button
-                            name="menu"
-                            size={25}
-                            backgroundColor="#694fad"
-                            onPress={() => navigation.openDrawer()}
-                        ></Icon.Button>
-                    )
-                }}
-            />
+             
              <CommunityStack.Screen
                 name="Friends"
                 component={Friends}
