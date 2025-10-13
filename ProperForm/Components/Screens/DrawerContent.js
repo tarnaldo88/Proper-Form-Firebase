@@ -24,7 +24,8 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 //style={styles.row} can also be used for the View style holding the double paragraph caption section
 
-function DrawerContent({props, navigation}) {
+function DrawerContent(props) {
+    const { navigation } = props;
 	//values used to determine if dark theme is active or not
 	const [isDarkTheme, setIsDarkTheme] = React.useState(false);
 
@@ -38,6 +39,7 @@ function DrawerContent({props, navigation}) {
     const [goalWeight, setGoalWeight] = useState(0);
 	const db = getFirestore(app);
 	const auth = getAuth(app);
+    const [isAdmin, setIsAdmin] = useState(false);
 
 	// Function to check and update streak
     const checkAndUpdateStreak = (workoutDates) => {
@@ -89,9 +91,16 @@ function DrawerContent({props, navigation}) {
             if (user) {
                 setUserID(user.uid);
                 setName(user.displayName || "Username");
+                try {
+                    const token = await user.getIdTokenResult(true);
+                    setIsAdmin(token?.claims?.admin === true);
+                } catch (e) {
+                    setIsAdmin(false);
+                }
             } else {
                 setUserID(null);
                 setName("Username");
+                setIsAdmin(false);
             }
         });
         return () => unsubscribeAuth();
@@ -252,6 +261,15 @@ function DrawerContent({props, navigation}) {
                                 label="My Account"
                                 onPress={() => navigation.navigate("Account")}
                             />
+                            {isAdmin && (
+                              <DrawerItem
+                                icon={({color, size}) => (
+                                  <Icon name="account-cog" color={color} size={size} />
+                                )}
+                                label="Admin Users"
+                                onPress={() => navigation.navigate("AdminUsers")}
+                              />
+                            )}
                         </Drawer.Section>
                     </View>
                 </DrawerContentScrollView>
