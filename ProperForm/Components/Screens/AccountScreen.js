@@ -104,7 +104,7 @@ function AccountScreen({navigation}) {
                     <View style={styles.settingRow}>
                         <Text style={styles.label}>Gender:</Text>
                         <View style={styles.genderContainer}>
-                            {["Male", "Female", "Other"].map((gender) => (
+                            {["Male", "Female"].map((gender) => (
                                 <TouchableOpacity
                                     key={gender}
                                     style={[
