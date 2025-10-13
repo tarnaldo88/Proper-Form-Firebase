@@ -83,6 +83,20 @@ function DrawerContent({props, navigation}) {
         setCurrentStreak(streak);
     };
 
+    useEffect(() => {
+        const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+            setIsLog(!!user);
+            if (user) {
+                setUserID(user.uid);
+                setName(user.displayName || "Username");
+            } else {
+                setUserID(null);
+                setName("Username");
+            }
+        });
+        return () => unsubscribeAuth();
+    }, []);
+
     // Load user data including workout days and weight information
     useEffect(() => {
         let isMounted = true;
@@ -141,7 +155,7 @@ function DrawerContent({props, navigation}) {
             unsubscribeWorkouts();
             unsubscribeUser();
         };
-    	}, []);		
+    	}, [isLog, userID]);
 
 	const paperTheme = useTheme();
 
