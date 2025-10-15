@@ -14,6 +14,130 @@ Proper Form is a React Native app built with Expo for fitness tracking. It inclu
 - Nutrition logging with remote API
 - Various screens for account, friends, messages, etc.
 
+## Admin Features
+- Admin-only user management to promote users to trainers.
+- Admin gating via Firebase custom claim `admin: true`.
+- Realtime chat between users and trainers using Firestore.
+
+### Screens and Utilities
+- `ProperForm/Components/Screens/AdminUsersScreen.js`
+  - Lists users (`users` collection) with `displayName`, `uid`, and `role`.
+  - Shows a “Promote to Trainer” button for non-trainer users.
+  - Screen content is visible only if the signed-in user has `claims.admin === true`.
+- `ProperForm/Components/admin/promoteTrainer.js`
+  - `promoteUserToTrainer(uid)` calls a protected helper to set `users/{uid}.role = 'trainer'`.
+  - Requires the acting user to have the custom claim `{ admin: true }`.
+
+### Navigation
+- The Admin screen is registered as `AdminUsers` under the Community stack in `ProperForm/Components/Screens/StackNavigator.js`.
+- From anywhere in the app (admin only), navigate with:
+```js
+navigation.navigate('AdminUsers');
+```
+
+### Setting the Admin Custom Claim (one-off)
+Use Firebase Admin SDK (outside the app) to set `admin: true` on your own account.
+
+1) Create a Service Account key (JSON) for your Firebase project and save it locally (e.g. `C:\keys\firebase-admin.json`).
+2) In a new folder, install Admin SDK and create `setAdminClaim.js`:
+```bash
+npm init -y
+npm i firebase-admin
+```
+```js
+// setAdminClaim.js
+const admin = require('firebase-admin');
+admin.initializeApp({ credential: admin.credential.applicationDefault() });
+
+async function setAdmin(uid, value = true) {
+  await admin.auth().setCustomUserClaims(uid, { admin: value });
+  console.log(`Set admin=${value} for uid=${uid}`);
+}
+
+const uid = process.argv[2];
+if (!uid) { console.error('Usage: node setAdminClaim.js <uid>'); process.exit(1); }
+setAdmin(uid).catch((e) => { console.error(e); process.exit(1); });
+```
+On Windows PowerShell set the env var and run:
+```powershell
+$env:GOOGLE_APPLICATION_CREDENTIALS="C:\keys\firebase-admin.json"
+node .\setAdminClaim.js <YOUR_ADMIN_UID>
+```
+Then sign out/in in the app (or call `getIdToken(true)`) to refresh claims.
+
+### Firestore Rules (scoped and secure)
+Replace any permissive catch-all with participants-only chat access and admin override for user writes.
+
+Example rules:
+```rules
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /users/{userId} {
+      allow read: if request.auth != null; // public profile for authed users
+      allow write: if request.auth != null &&
+                   (request.auth.uid == userId || request.auth.token.admin == true);
+
+      match /weightHistory/{entryId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      match /foodEntries/{entryId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      match /routines/{routineId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      match /workoutDays/{workoutId} {
+        allow read, create: if request.auth != null && request.auth.uid == userId;
+        allow update, delete: if false;
+      }
+    }
+
+    match /conversations/{convId} {
+      function isParticipant() {
+        return request.auth != null &&
+          ((resource.data.participants.hasAny([request.auth.uid])) ||
+           (request.method == 'create' &&
+            request.resource.data.participants.hasAny([request.auth.uid])));
+      }
+      allow read, create: if isParticipant();
+      allow update, delete: if isParticipant();
+
+      match /messages/{msgId} {
+        allow read, create: if isParticipant();
+        allow update, delete: if false; // optional safeguard
+      }
+    }
+
+    match /community/{document} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null &&
+        (request.auth.token.admin == true || request.resource.data.userId == request.auth.uid);
+    }
+
+    match /steps/{stepId} {
+      allow read, write: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    }
+
+    match /userProfiles/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
+```
+
+### Data model for trainers
+- `users/{uid}` document should include:
+  - `uid`, `displayName`, `photoURL`, `role` (`'user'` or `'trainer'`)
+- `ChatSelect.js` queries `users` where `role == 'trainer'` and opens/creates a Firestore conversation.
+
+### Security considerations
+- Keep service account JSON secret; never commit to source control.
+- Limit admin access to trusted accounts only.
+- Validate and monitor writes to `conversations`/`messages` (indexes are not required for simple equality + ordering on subcollections).
+
 
 ## Project Structure
 ```
